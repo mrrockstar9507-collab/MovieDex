@@ -4,6 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Home Movie Library — Scan → Auto‑Add</title>
+  <!--
+    Notes for deployment:
+    • Use HTTPS (e.g., GitHub Pages) so the camera works for barcode scanning.
+    • This app stores your OMDb API key in localStorage so it's UNIVERSAL on this device.
+  -->
   <style>
     :root{
       --bg:#0f1115;--panel:#151823;--muted:#99a3b3;--text:#e8ecf3;--brand:#6ee7b7;--accent:#60a5fa;--danger:#ef4444;--warn:#f59e0b;--ok:#22c55e;
@@ -102,7 +107,7 @@
       <ul>
         <li><b>9 categories</b>: Genre, Sub‑genre, Year/Decade, Director, Cast, Format, Language, Country/Region, MPAA.</li>
         <li>Extras: <b>Spine #</b> (auto), <b>Location</b>, <b>Barcode</b>, <b>Cover</b>, <b>Synopsis</b>, <b>Your rating</b>.</li>
-        <li>Put your <b>OMDb API key</b> in the toolbar field below for richer auto‑fill after scanning.</li>
+        <li>Put your <b>OMDb API key</b> in the toolbar field below. It will be stored on this device for all users of this browser.</li>
       </ul>
     </details>
 
@@ -136,7 +141,7 @@
       <span class="chip">MPAA <select id="f-mpaa"><option value="">Any</option><option>G</option><option>PG</option><option>PG-13</option><option>R</option><option>NC-17</option></select></span>
       <span class="chip">Location <input id="f-loc" type="text" placeholder="Room / shelf…"></span>
       <span class="chip">My rating ≥ <input id="f-rate-min" type="number" min="0" max="5" step="0.5" value="0"></span>
-      <span class="chip">OMDb key <input id="omdb" type="text" placeholder="(optional)"/></span>
+      <span class="chip">OMDb key <input id="omdb" type="password" placeholder="(device‑wide)"/></span>
       <button id="btn-reset" class="btn ghost">Reset</button>
     </div>
 
@@ -187,7 +192,7 @@
           <textarea id="synopsis" placeholder="Short plot summary"></textarea>
           <div class="flex gap-8" style="margin-top:6px">
             <button type="button" id="btn-fetch" class="btn">🌐 Fetch synopsis via OMDb</button>
-            <span class="soft">Needs OMDb key in filters bar.</span>
+            <span class="soft">Uses device‑wide OMDb key.</span>
           </div>
         </div>
 
@@ -257,6 +262,12 @@
 
   <script>
   'use strict';
+  // ===== Device‑wide OMDb Key (persists per browser/profile via localStorage) =====
+  const OMDB_KEY_STORAGE = 'omdbKey';
+  const getOmdbKey = () => localStorage.getItem(OMDB_KEY_STORAGE) || '';
+  const setOmdbKey = v => localStorage.setItem(OMDB_KEY_STORAGE, String(v||'').trim());
+
+  // ===== DOM helpers =====
   const $ = s => document.querySelector(s);
   const $$ = s => Array.from(document.querySelectorAll(s));
   const els = {
@@ -273,8 +284,8 @@
 
   const GENRES = ['Action','Adventure','Animation','Biography','Comedy','Crime','Documentary','Drama','Family','Fantasy','Film-Noir','History','Horror','Music','Musical','Mystery','Romance','Sci-Fi','Sport','Thriller','War','Western'];
 
-  // IndexedDB
-  const DB_NAME = 'movieLibrary.v4';
+  // ===== IndexedDB =====
+  const DB_NAME = 'movieLibrary.v5';
   const STORE = 'movies';
   let db;
   function openDB(){
@@ -302,13 +313,22 @@
   let MOVIES = [];
   let CURRENT = null;
 
-  // Utilities
+  // ===== Utilities =====
   const by = (field, desc=false) => (a,b)=> (a[field]??'') > (b[field]??'') ? (desc? -1:1) : (a[field]??'') < (b[field]??'') ? (desc? 1:-1) : 0;
   function escapeHtml(str){return String(str||'').replace(/[&<>"']/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[s]))}
   function starSVG(fill){return `<svg class="star" width="18" height="18" viewBox="0 0 24 24" fill="${fill? '#fde047':'none'}" stroke="#fde047" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15 9 22 9 17 14 19 21 12 17 5 21 7 14 2 9 9 9 12 2"/></svg>`}
   function renderStars(el, value){ el.innerHTML=''; const v=Number(value||0); for(let i=1;i<=5;i++){ const b=document.createElement('button'); b.type='button'; b.className='star-btn'; b.title=i+' star'; b.innerHTML=starSVG(i<=v); b.onclick=()=>{renderStars(el,i); el.dataset.value=i}; el.appendChild(b);} el.dataset.value=v; }
   function renderStarsStatic(value){let s=''; for(let i=1;i<=5;i++){s+=starSVG(i<=value)} return s}
   function decadeOf(y){ y=Number(y); if(!y) return ''; return Math.floor(y/10)*10 + 's'; }
+  function cleanTitle(t){
+    return String(t||'')
+      .replace(/\s*\((?:blu[-\s]?ray|dvd|uhd|4k|digital|combo|\w+ edition)\)/ig,'')
+      .replace(/\s*\[(?:blu[-\s]?ray|dvd|uhd|4k|digital|combo|\w+ edition)\]/ig,'')
+      .replace(/\s+\b(4k|uhd|ultra\s*hd|blu[-\s]?ray|dvd|digital|combo|limited|widescreen|\w+ edition)\b/ig,'')
+      .replace(/[:\-]\s*(blu[-\s]?ray|dvd|uhd|4k).*/ig,'')
+      .replace(/\s{2,}/g,' ')
+      .trim();
+  }
 
   function renderGenreChoices(){ const box = document.getElementById('genre-box'); box.innerHTML = GENRES.map(g=>`<label><input type="checkbox" value="${g}"> ${g}</label>`).join(''); const fg = document.getElementById('f-genre'); GENRES.forEach(g=>{const o=document.createElement('option');o.textContent=g; fg.appendChild(o)}); }
 
@@ -478,7 +498,7 @@
     };
   }
 
-  // Export / Import / Clear
+  // ===== Export / Import / Clear =====
   function bindDataButtons(){
     document.getElementById('btn-backup').onclick = ()=>{
       const data = JSON.stringify(MOVIES, null, 2);
@@ -498,7 +518,7 @@
     document.getElementById('btn-clear').onclick = async()=>{ if(!confirm('Delete ALL movies from this browser?')) return; await DB.clear(); MOVIES=[]; renderList(); };
   }
 
-  // Barcode scanning
+  // ===== Barcode scanning =====
   let html5Qrcode = null, scanning=false;
   function startScan(){
     if(typeof Html5Qrcode === 'undefined'){ alert('Scanner library not loaded. Enter barcode manually.'); return; }
@@ -509,7 +529,7 @@
   }
   function stopScan(){ if(html5Qrcode && scanning){ html5Qrcode.stop().then(()=>{html5Qrcode.clear(); scanning=false}).catch(()=>{}) } }
 
-  // === UPC → product → OMDb enrichment ===
+  // ===== UPC → product → OMDb enrichment =====
   async function lookupByUPC_UpcItemDb(upc){
     const url = `https://api.upcitemdb.com/prod/trial/lookup?upc=${encodeURIComponent(upc)}`; // free trial (~100 req/day)
     try{
@@ -517,7 +537,7 @@
       if(!r.ok) return null; const j = await r.json();
       if(j && j.code==='OK' && Array.isArray(j.items) && j.items.length){
         const it = j.items[0]||{};
-        const title = (it.title||'').trim();
+        const title = cleanTitle((it.title||'').trim());
         const cat = (it.category||'').toLowerCase();
         const format = detectFormatFromText(`${title} ${it.description||''} ${cat}`);
         const image = Array.isArray(it.images)&&it.images[0] ? it.images[0] : '';
@@ -527,30 +547,47 @@
     return null;
   }
   function detectFormatFromText(txt){ txt=(txt||'').toLowerCase(); if(/\b(4k|uhd|ultra\s*hd)\b/.test(txt)) return '4K UHD'; if(/blu[-\s]?ray/.test(txt)) return 'Blu‑ray'; if(/\bdvd\b/.test(txt)) return 'DVD'; if(/vhs/.test(txt)) return 'VHS'; return 'Blu‑ray'; }
-  function cleanTitle(t){ return String(t||'').replace(/\s*\((?:blu[-\s]?ray|dvd|uhd|4k|digital|combo|\w+ edition)\)/ig,'').replace(/\s*\[(?:blu[-\s]?ray|dvd|uhd|4k|digital|combo|\w+ edition)\]/ig,'').replace(/\s+\b(4k|uhd|ultra\s*hd|blu[-\s]?ray|dvd|digital|combo|limited|widescreen|\w+ edition)\b/ig,'').replace(/[:\-]\s*(blu[-\s]?ray|dvd|uhd|4k).*/ig,'').replace(/\s{2,}/g,' ').trim(); }
-  function guessYear(t){ const m = String(t||'').match(/\b(19\d{2}|20\d{2})\b/); return m? Number(m[1]): '' }
-  async function fetchOmdbByTitle(title, year){ const key=els.omdb.value.trim(); if(!key||!title) return null; const url=`https://www.omdbapi.com/?apikey=${encodeURIComponent(key)}&type=movie&t=${encodeURIComponent(title)}${year?`&y=${year}`:''}`; try{ const r=await fetch(url); const j=await r.json(); if(j && j.Response!=='False') return j; }catch(e){ console.warn('OMDb error',e) } return null; }
+  function guessYearFromText(t){ const m = String(t||'').match(/\b(19\d{2}|20\d{2})\b/); return m? Number(m[1]): '' }
+
+  async function fetchOmdbByTitle(title, year){
+    const key = getOmdbKey();
+    if(!key || !title) return null;
+    const url = `https://www.omdbapi.com/?apikey=${encodeURIComponent(key)}&type=movie&t=${encodeURIComponent(title)}${year?`&y=${encodeURIComponent(year)}`:''}`;
+    try{ const r=await fetch(url); const j=await r.json(); if(j && j.Response!=='False') return j; }catch(e){ console.warn('OMDb error',e) } return null; }
 
   async function createMovieFromUPC(code){
     let movie={ barcode:code, shelf:nextSpine(), title:`Barcode ${code}`, year:'', runtime:'', format:'Blu‑ray', language:'', country:'', mpaa:'', genres:[], cast:[], tags:[], director:'', rating:0, synopsis:'', coverData:'' };
     const upc=await lookupByUPC_UpcItemDb(code);
-    if(upc && upc.title){ const t=cleanTitle(upc.title); movie.title=t||movie.title; movie.format=upc.format||movie.format; movie.coverData=upc.image||movie.coverData; movie.synopsis=upc.description||movie.synopsis; const y=guessYear(upc.title); if(y) movie.year=y; }
+    if(upc && upc.title){ movie.title=upc.title||movie.title; movie.format=upc.format||movie.format; movie.coverData=upc.image||movie.coverData; movie.synopsis=upc.description||movie.synopsis; const y=guessYearFromText(upc.title); if(y) movie.year=y; }
     const omdb=await fetchOmdbByTitle(movie.title, movie.year);
-    if(omdb){ movie.title=omdb.Title||movie.title; movie.year=parseInt(omdb.Year)||movie.year||''; movie.runtime=parseInt(omdb.Runtime)||movie.runtime||''; movie.language=(omdb.Language||'').split(',')[0]||movie.language; movie.country=(omdb.Country||'').split(',')[0]||movie.country; if(['G','PG','PG-13','R','NC-17'].includes(omdb.Rated)) movie.mpaa=omdb.Rated; movie.genres=(omdb.Genre||'').split(',').map(s=>s.trim()).filter(Boolean); movie.director=omdb.Director||movie.director; movie.cast=(omdb.Actors||'').split(',').map(s=>s.trim()).filter(Boolean); movie.synopsis=omdb.Plot||movie.synopsis; if(omdb.Poster && omdb.Poster!=='N/A') movie.coverData=omdb.Poster; }
-    const id=await DB.add(movie); movie.id=id; MOVIES=await DB.all(); renderList(); openEditor(movie); setTimeout(()=>document.getElementById('title')?.focus(),50);
+    if(omdb){
+      movie.title=omdb.Title||movie.title;
+      movie.year=parseInt(omdb.Year)||movie.year||'';
+      movie.runtime=parseInt(String(omdb.Runtime||'').replace(/[^0-9]/g,''))||movie.runtime||'';
+      movie.language=(omdb.Language||'').split(',')[0].trim()||movie.language;
+      movie.country=(omdb.Country||'').split(',')[0].trim()||movie.country;
+      if(['G','PG','PG-13','R','NC-17'].includes(omdb.Rated)) movie.mpaa=omdb.Rated;
+      movie.genres=(omdb.Genre||'').split(',').map(s=>s.trim()).filter(Boolean);
+      movie.director=omdb.Director||movie.director;
+      movie.cast=(omdb.Actors||'').split(',').map(s=>s.trim()).filter(Boolean);
+      movie.synopsis=omdb.Plot||movie.synopsis;
+      if(omdb.Poster && omdb.Poster!=='N/A') movie.coverData=omdb.Poster;
+    }
+    const id=await DB.add(movie); movie.id=id; MOVIES=await DB.all(); renderList(); if(els.editor.open) els.editor.close(); openDetail(movie.id);
   }
 
   async function onScanSuccess(decodedText){
     const code = String(decodedText||'').trim();
-    stopScan(); els.scanner.close();
+    try{ stopScan(); }catch(e){}
+    try{ els.scanner.close(); }catch(e){}
     if(!code) return;
-    const found = MOVIES.find(m=>m.barcode===code);
-    if(found){ openDetail(found.id); return; }
+    const existing = MOVIES.find(m=>m.barcode===code);
+    if(existing){ if(els.editor.open) els.editor.close(); openDetail(existing.id); return; }
     await createMovieFromUPC(code);
   }
   function onScanError(err){ /* silent */ }
 
-  // Camera Cover Snapshot
+  // ===== Camera Cover Snapshot =====
   let stream=null, videoEl=null;
   document.getElementById('btn-snap').onclick = async()=>{
     try{
@@ -573,7 +610,7 @@
   };
 
   async function fetchSynopsis(){
-    const key = els.omdb.value.trim(); if(!key){ alert('Enter an OMDb API key in the toolbar first.'); return }
+    const key = getOmdbKey(); if(!key){ alert('Enter an OMDb API key in the toolbar first.'); return }
     const t = document.getElementById('title').value.trim(); if(!t){ alert('Enter a title first.'); return }
     const y = document.getElementById('year').value||'';
     const url = `https://www.omdbapi.com/?apikey=${encodeURIComponent(key)}&type=movie&t=${encodeURIComponent(t)}${y?`&y=${encodeURIComponent(y)}`:''}`;
@@ -582,7 +619,7 @@
       if(j && j.Response!=='False'){
         document.getElementById('synopsis').value = j.Plot || document.getElementById('synopsis').value || '';
         if(!document.getElementById('year').value && j.Year) document.getElementById('year').value = parseInt(j.Year)||'';
-        if(!document.getElementById('runtime').value && j.Runtime) document.getElementById('runtime').value = parseInt(j.Runtime)||'';
+        if(!document.getElementById('runtime').value && j.Runtime) document.getElementById('runtime').value = parseInt(String(j.Runtime).replace(/[^0-9]/g,''))||'';
         if((j.Genre||'').length){ const G=j.Genre.split(',').map(x=>x.trim()); $$('#genre-box input').forEach(cb=>cb.checked = G.includes(cb.value)); }
         if(!document.getElementById('language').value && j.Language) document.getElementById('language').value = j.Language.split(',')[0].trim();
         if(!document.getElementById('country').value && j.Country) document.getElementById('country').value = j.Country.split(',')[0].trim();
@@ -591,8 +628,12 @@
     }catch(err){ alert('OMDb error: '+err.message) }
   }
 
-  // Init
+  // ===== Init =====
   (async function init(){
+    // Seed + persist OMDb key for the device
+    els.omdb.value = getOmdbKey();
+    els.omdb.addEventListener('input', e => setOmdbKey(e.target.value));
+
     renderGenreChoices();
     await openDB();
     MOVIES = await DB.all();
@@ -622,7 +663,7 @@
     // Inside editor scan trigger
     document.getElementById('scan-inside').onclick = startScan;
 
-    // Fetch synopsis button
+    // Fetch synopsis button (uses device‑wide key)
     document.getElementById('btn-fetch').onclick = fetchSynopsis;
   })();
   </script>
