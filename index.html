@@ -76,6 +76,7 @@
     .flex{display:flex}
     .gap-8{gap:8px}
   </style>
+  <!-- Barcode scanner lib -->
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
 <body>
@@ -104,10 +105,10 @@
     <details class="help">
       <summary>Quick help</summary>
       <ul>
-        <li><b>9 core categories</b> used for organization & filtering: <i>Genre, Sub‑genre, Release Year/Decade, Director, Cast, Format, Language, Country/Region, MPAA rating</i>.</li>
-        <li>Extras: <b>Spine number</b> (auto), <b>Location</b>, <b>Barcode</b>, <b>Cover</b>, <b>Synopsis</b>, and your <b>personal rating</b>.</li>
+        <li><b>9 core categories</b> for organization: <i>Genre, Sub-genre, Release Year/Decade, Director, Cast, Format, Language, Country/Region, MPAA rating</i>.</li>
+        <li>Extras: <b>Spine #</b> (auto), <b>Location</b>, <b>Barcode</b>, <b>Cover</b>, <b>Synopsis</b>, and your <b>personal rating</b>.</li>
         <li>Data stays in your browser (IndexedDB). Use <b>Export/Import</b> to back up or move to another device.</li>
-        <li>Optional: put an <b>OMDb API key</b> below, then click <i>Fetch synopsis</i> while editing to auto‑fill plot/year/runtime/genres.</li>
+        <li>Optional: put an <b>OMDb API key</b> in the toolbar; in the editor click <i>Fetch synopsis</i> to auto-fill plot/year/runtime/genres by Title.</li>
       </ul>
     </details>
 
@@ -127,11 +128,11 @@
       <span class="chip">Genre
         <select id="f-genre"><option value="">Any</option></select>
       </span>
-      <span class="chip">Sub‑genre <input id="f-sub" type="text" placeholder="e.g., heist"></span>
+      <span class="chip">Sub-genre <input id="f-sub" type="text" placeholder="e.g., heist"></span>
       <span class="chip">Format
         <select id="f-format">
           <option value="">Any</option>
-          <option>4K UHD</option><option>Blu‑ray</option><option>DVD</option><option>Digital</option><option>VHS</option>
+          <option>4K UHD</option><option>Blu-ray</option><option>DVD</option><option>Digital</option><option>VHS</option>
         </select>
       </span>
       <span class="chip">Year ≥ <input id="f-year-min" type="number" placeholder="1990"></span>
@@ -165,7 +166,7 @@
         <div class="field"><label>Runtime (min)</label><input id="runtime" type="number" min="1" placeholder="123"></div>
 
         <div class="field"><label>Format</label>
-          <select id="format"><option>4K UHD</option><option>Blu‑ray</option><option>DVD</option><option>Digital</option><option>VHS</option></select>
+          <select id="format"><option>4K UHD</option><option>Blu-ray</option><option>DVD</option><option>Digital</option><option>VHS</option></select>
         </div>
         <div class="field"><label>Language</label><input id="language" placeholder="English"></div>
         <div class="field"><label>Country/Region</label><input id="country" placeholder="USA, Japan…"></div>
@@ -177,8 +178,8 @@
           <div id="genre-box" class="genres"></div>
         </div>
 
-        <div class="field full"><label>Cast (comma‑separated)</label><input id="cast" placeholder="Keanu Reeves, Carrie‑Anne Moss"></div>
-        <div class="field full"><label>Sub‑genres / Tags (comma‑separated)</label><input id="tags" placeholder="heist, time‑travel"></div>
+        <div class="field full"><label>Cast (comma-separated)</label><input id="cast" placeholder="Keanu Reeves, Carrie-Anne Moss"></div>
+        <div class="field full"><label>Sub-genres / Tags (comma-separated)</label><input id="tags" placeholder="heist, time-travel"></div>
 
         <div class="field"><label>Spine # (auto)</label><input id="shelf" type="number" min="1" placeholder="Auto"/></div>
         <div class="field"><label>Location</label><input id="location" placeholder="Room • Shelf • Row"></div>
@@ -232,7 +233,7 @@
           <div>Director: <b id="d-dir"></b></div>
           <div>Cast: <span id="d-cast" class="soft"></span></div>
           <div>Genres: <span id="d-genres" class="soft"></span></div>
-          <div>Sub‑genres: <span id="d-tags" class="soft"></span></div>
+          <div>Sub-genres: <span id="d-tags" class="soft"></span></div>
           <div>Barcode: <span id="d-bar" class="pill"></span></div>
           <div>Location: <b id="d-loc"></b></div>
           <div class="flex">My rating: <span id="d-rating" class="stars" style="margin-left:6px"></span></div>
@@ -337,7 +338,7 @@
     </article>`;
   }
 
-  function escapeHtml(str){return String(str||'').replace(/[&<>"']/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[s]))}
+  function escapeHtml(str){return String(str||'').replace(/[&<>\"']/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]))}
 
   function applyFilters(list){
     const q = $('#q').value.trim().toLowerCase();
@@ -394,7 +395,7 @@
     $('#year').value = movie?.year||'';
     $('#director').value = movie?.director||'';
     $('#runtime').value = movie?.runtime||'';
-    $('#format').value = movie?.format||'Blu‑ray';
+    $('#format').value = movie?.format||'Blu-ray';
     $('#language').value = movie?.language||'';
     $('#country').value = movie?.country||'';
     $('#mpaa').value = movie?.mpaa||'';
@@ -517,7 +518,37 @@
     html5Qrcode.start({facingMode:'environment'}, f, onScanSuccess, onScanError).then(()=>scanning=true).catch(err=>{alert('Camera error: '+err); stopScan(); scanner.close();});
   }
   function stopScan(){ if(html5Qrcode && scanning){ html5Qrcode.stop().then(()=>{html5Qrcode.clear(); scanning=false}).catch(()=>{}) } }
-  function onScanSuccess(decodedText){ $('#barcode').value = String(decodedText||''); stopScan(); scanner.close(); }
+
+  // Auto-add a minimal movie record from a scanned barcode and open editor
+  async function addMovieFromBarcode(code){
+    const movie = {
+      title: `Barcode ${code}`,
+      year: '', director: '', runtime: '',
+      format: 'Blu-ray', language: '', country: '', mpaa: '',
+      genres: [], cast: [], tags: [],
+      shelf: nextSpine(), location: '', barcode: code,
+      rating: 0, synopsis: '', coverData: ''
+    };
+    const newId = await DB.add(movie); movie.id = newId;
+    MOVIES = await DB.all(); renderList();
+    // Jump straight into edit so you can refine / fetch synopsis by title
+    openEditor(movie);
+    setTimeout(()=>document.getElementById('title')?.focus(), 50);
+  }
+
+  function onScanSuccess(decodedText){
+    const code = String(decodedText||'').trim();
+    stopScan(); scanner.close();
+    if(!code) return;
+
+    // If already cataloged, open it; otherwise auto-add then open editor
+    const found = MOVIES.find(m=>m.barcode===code);
+    if(found){
+      openDetail(found.id);
+    } else {
+      addMovieFromBarcode(code);
+    }
+  }
   function onScanError(err){ /* silent */ }
   $('#btn-scan').onclick = startScan; $('#scan-inside').onclick = startScan;
 
