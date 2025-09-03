@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Home Movie Library — Tailored 9 Categories</title>
+  <style>
+    :root{
+      --bg:#0f1115;--panel:#151823;--muted:#99a3b3;--text:#e8ecf3;--brand:#6ee7b7;--accent:#60a5fa;--danger:#ef4444;--warn:#f59e0b;--ok:#22c55e;
+      --card:#1a1f2e;--chip:#22283a;--input:#111423;--border:#2a3146;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:linear-gradient(180deg,#0b0e13,#0f1117 20%,#0f1115);color:var(--text);font:14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";}
+    a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+    .app{max-width:1200px;margin:0 auto;padding:20px}
+    header{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:16px}
+    .title{display:flex;align-items:center;gap:12px}
+    .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--brand),#4ade80);display:grid;place-items:center;color:#0b1410;font-weight:800}
+    h1{font-size:20px;margin:0}
+
+    .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+    .search{position:relative;flex:1;min-width:240px}
+    .search input{width:100%;padding:10px 12px 10px 38px;border-radius:10px;border:1px solid var(--border);background:var(--input);color:var(--text)}
+    .search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:.7}
+
+    .btn{appearance:none;border:1px solid var(--border);background:var(--panel);color:var(--text);padding:9px 12px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+    .btn:hover{filter:brightness(1.05)}
+    .btn.primary{background:linear-gradient(135deg,#2563eb,#22c55e);border:0}
+    .btn.ghost{background:#121522}
+    .btn.danger{background:#2b1420;border-color:#7a253f;color:#f9c}
+
+    .filters{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+    .chip{background:var(--chip);border:1px solid var(--border);border-radius:999px;padding:6px 10px;display:inline-flex;gap:8px;align-items:center}
+    .chip input, .chip select{background:transparent;border:0;color:var(--text)}
+    .chip input[type="number"]{width:84px}
+
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+    .cover{width:100%;height:280px;background:#0c0f18 center/cover no-repeat;display:grid;place-items:center;color:#8891a7}
+    .cover small{opacity:.8}
+    .card .meta{padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+    .badge{display:inline-flex;align-items:center;gap:6px;background:#12202a;border:1px solid #1f3746;color:#9bd1ff;padding:3px 8px;border-radius:999px;font-size:12px}
+    .row{display:flex;gap:8px;justify-content:space-between;align-items:center}
+    .titleRow{display:flex;gap:8px;align-items:center}
+    .titleRow h3{margin:0;font-size:15px;line-height:1.2}
+    .shelf{background:#132918;border:1px solid #205c33;color:#b7f6c7;padding:2px 8px;border-radius:999px;font-weight:700}
+
+    .stars{display:inline-flex;gap:2px}
+    .stars .star{filter:drop-shadow(0 0 0 rgba(0,0,0,0.2))}
+
+    .empty{opacity:.7;padding:30px;text-align:center;border:1px dashed var(--border);border-radius:16px}
+
+    dialog{border:1px solid var(--border);background:var(--panel);color:var(--text);border-radius:16px;max-width:860px;width:calc(100% - 24px);padding:0}
+    dialog::backdrop{background:rgba(0,0,0,.55)}
+    .modal-head{display:flex;justify-content:space-between;align-items:center;padding:14px;border-bottom:1px solid var(--border)}
+    .modal-body{padding:14px}
+    .modal-foot{display:flex;justify-content:flex-end;gap:10px;padding:14px;border-top:1px solid var(--border)}
+
+    form.movie{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    form.movie .full{grid-column:1 / -1}
+    .field{display:flex;flex-direction:column;gap:6px}
+    label{font-size:12px;color:var(--muted)}
+    input[type="text"], input[type="number"], input[type="file"], textarea, select{padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--input);color:var(--text)}
+    textarea{min-height:90px;resize:vertical}
+    .genres{display:flex;flex-wrap:wrap;gap:6px}
+    .genres label{display:inline-flex;gap:6px;align-items:center;background:#111524;border:1px solid var(--border);padding:6px 10px;border-radius:999px}
+
+    .help{background:#0f1424;border:1px solid var(--border);border-radius:12px;padding:10px;margin:8px 0;color:#c6d0e0}
+    summary{cursor:pointer}
+
+    .pill{background:#14192b;border:1px solid var(--border);padding:6px 10px;border-radius:999px}
+
+    .soft{opacity:.7}
+    .hidden{display:none}
+    .flex{display:flex}
+    .gap-8{gap:8px}
+  </style>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="title">
+        <div class="logo">🎞️</div>
+        <div>
+          <h1>Home Movie Library</h1>
+          <div class="soft">Tailored 9 categories • Search • Rate • Locate</div>
+        </div>
+      </div>
+      <div class="toolbar" style="width:100%">
+        <div class="search" style="flex:1">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <input id="q" placeholder="Search across all fields (title, cast, tags, synopsis, location, barcode…)" />
+        </div>
+        <button id="btn-add" class="btn primary">➕ Add movie</button>
+        <button id="btn-scan" class="btn">📷 Scan barcode</button>
+        <button id="btn-backup" class="btn">⤓ Export</button>
+        <label class="btn" for="restore">⤒ Import <input id="restore" type="file" accept="application/json" hidden></label>
+        <button id="btn-clear" class="btn danger">🗑 Delete all</button>
+      </div>
+    </header>
+
+    <details class="help">
+      <summary>Quick help</summary>
+      <ul>
+        <li><b>9 core categories</b> used for organization & filtering: <i>Genre, Sub‑genre, Release Year/Decade, Director, Cast, Format, Language, Country/Region, MPAA rating</i>.</li>
+        <li>Extras: <b>Spine number</b> (auto), <b>Location</b>, <b>Barcode</b>, <b>Cover</b>, <b>Synopsis</b>, and your <b>personal rating</b>.</li>
+        <li>Data stays in your browser (IndexedDB). Use <b>Export/Import</b> to back up or move to another device.</li>
+        <li>Optional: put an <b>OMDb API key</b> below, then click <i>Fetch synopsis</i> while editing to auto‑fill plot/year/runtime/genres.</li>
+      </ul>
+    </details>
+
+    <div class="filters">
+      <span class="chip">Sort
+        <select id="sort">
+          <option value="title">Title (A→Z)</option>
+          <option value="-title">Title (Z→A)</option>
+          <option value="year">Year ↑</option>
+          <option value="-year">Year ↓</option>
+          <option value="shelf">Spine # ↑</option>
+          <option value="-shelf">Spine # ↓</option>
+          <option value="-rating">My rating ↓</option>
+          <option value="rating">My rating ↑</option>
+        </select>
+      </span>
+      <span class="chip">Genre
+        <select id="f-genre"><option value="">Any</option></select>
+      </span>
+      <span class="chip">Sub‑genre <input id="f-sub" type="text" placeholder="e.g., heist"></span>
+      <span class="chip">Format
+        <select id="f-format">
+          <option value="">Any</option>
+          <option>4K UHD</option><option>Blu‑ray</option><option>DVD</option><option>Digital</option><option>VHS</option>
+        </select>
+      </span>
+      <span class="chip">Year ≥ <input id="f-year-min" type="number" placeholder="1990"></span>
+      <span class="chip">Decade
+        <select id="f-decade"><option value="">Any</option><option>1960s</option><option>1970s</option><option>1980s</option><option>1990s</option><option>2000s</option><option>2010s</option><option>2020s</option></select>
+      </span>
+      <span class="chip">Language <input id="f-lang" type="text" placeholder="English…"></span>
+      <span class="chip">Country/Region <input id="f-country" type="text" placeholder="USA…"></span>
+      <span class="chip">MPAA <select id="f-mpaa"><option value="">Any</option><option>G</option><option>PG</option><option>PG-13</option><option>R</option><option>NC-17</option></select></span>
+      <span class="chip">Location <input id="f-loc" type="text" placeholder="Room / shelf…"></span>
+      <span class="chip">My rating ≥ <input id="f-rate-min" type="number" min="0" max="5" step="0.5" value="0"></span>
+      <span class="chip">OMDb key <input id="omdb" type="text" placeholder="(optional)"/></span>
+      <button id="btn-reset" class="btn ghost">Reset</button>
+    </div>
+
+    <div id="list" class="grid"></div>
+    <div id="empty" class="empty hidden">No movies yet. Click <b>Add movie</b> to start your catalog.</div>
+  </div>
+
+  <!-- Add/Edit Modal -->
+  <dialog id="editor">
+    <form method="dialog" class="movie" id="movie-form">
+      <div class="modal-head">
+        <strong id="editor-title">Add movie</strong>
+        <button class="btn" value="close">✖</button>
+      </div>
+      <div class="modal-body">
+        <div class="field"><label>Title</label><input id="title" required></div>
+        <div class="field"><label>Year</label><input id="year" type="number" min="1888" max="2100" placeholder="e.g., 1999"></div>
+        <div class="field"><label>Director</label><input id="director" placeholder="Name"></div>
+        <div class="field"><label>Runtime (min)</label><input id="runtime" type="number" min="1" placeholder="123"></div>
+
+        <div class="field"><label>Format</label>
+          <select id="format"><option>4K UHD</option><option>Blu‑ray</option><option>DVD</option><option>Digital</option><option>VHS</option></select>
+        </div>
+        <div class="field"><label>Language</label><input id="language" placeholder="English"></div>
+        <div class="field"><label>Country/Region</label><input id="country" placeholder="USA, Japan…"></div>
+        <div class="field"><label>MPAA rating</label>
+          <select id="mpaa"><option value="">—</option><option>G</option><option>PG</option><option>PG-13</option><option>R</option><option>NC-17</option></select>
+        </div>
+
+        <div class="field full"><label>Genres (choose any)</label>
+          <div id="genre-box" class="genres"></div>
+        </div>
+
+        <div class="field full"><label>Cast (comma‑separated)</label><input id="cast" placeholder="Keanu Reeves, Carrie‑Anne Moss"></div>
+        <div class="field full"><label>Sub‑genres / Tags (comma‑separated)</label><input id="tags" placeholder="heist, time‑travel"></div>
+
+        <div class="field"><label>Spine # (auto)</label><input id="shelf" type="number" min="1" placeholder="Auto"/></div>
+        <div class="field"><label>Location</label><input id="location" placeholder="Room • Shelf • Row"></div>
+
+        <div class="field"><label>Barcode (UPC/EAN)</label>
+          <div class="flex gap-8"><input id="barcode" placeholder="Scan or type"> <button type="button" id="scan-inside" class="btn">Scan</button></div>
+        </div>
+        <div class="field"><label>My rating</label>
+          <div id="rate-edit" class="stars" role="radiogroup" aria-label="Your rating"></div>
+        </div>
+
+        <div class="field full"><label>Synopsis</label>
+          <textarea id="synopsis" placeholder="Short plot summary"></textarea>
+          <div class="flex gap-8" style="margin-top:6px">
+            <button type="button" id="btn-fetch" class="btn">🌐 Fetch synopsis via OMDb</button>
+            <span class="soft">Needs OMDb key in filters bar.</span>
+          </div>
+        </div>
+
+        <div class="field full"><label>Cover image</label>
+          <div class="flex gap-8"><input id="cover" type="file" accept="image/*" capture="environment"><button type="button" id="btn-snap" class="btn">📸 Use camera</button></div>
+          <canvas id="snap-canvas" class="hidden" width="320" height="480"></canvas>
+        </div>
+
+        <input id="edit-id" type="hidden">
+      </div>
+      <div class="modal-foot">
+        <button class="btn" value="close">Cancel</button>
+        <button id="save" class="btn primary" value="default">💾 Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Details Modal -->
+  <dialog id="detail">
+    <div class="modal-head">
+      <div class="titleRow">
+        <span id="d-shelf" class="shelf"></span>
+        <strong id="d-title"></strong>
+        <span id="d-year" class="pill"></span>
+      </div>
+      <button class="btn" onclick="detail.close()">✖</button>
+    </div>
+    <div class="modal-body">
+      <div class="flex gap-8">
+        <img id="d-cover" alt="cover" style="width:220px;height:320px;object-fit:cover;border-radius:12px;border:1px solid var(--border)">
+        <div style="flex:1;display:flex;flex-direction:column;gap:10px">
+          <div class="badge">Format: <b id="d-format"></b></div>
+          <div>Language: <b id="d-lang"></b> • Country: <b id="d-country"></b> • MPAA: <b id="d-mpaa"></b></div>
+          <div>Runtime: <b id="d-run"></b> min</div>
+          <div>Director: <b id="d-dir"></b></div>
+          <div>Cast: <span id="d-cast" class="soft"></span></div>
+          <div>Genres: <span id="d-genres" class="soft"></span></div>
+          <div>Sub‑genres: <span id="d-tags" class="soft"></span></div>
+          <div>Barcode: <span id="d-bar" class="pill"></span></div>
+          <div>Location: <b id="d-loc"></b></div>
+          <div class="flex">My rating: <span id="d-rating" class="stars" style="margin-left:6px"></span></div>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <div class="soft">Synopsis</div>
+        <div id="d-syn"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button id="btn-edit" class="btn">✏️ Edit</button>
+      <button id="btn-delete" class="btn danger">🗑 Delete</button>
+      <button class="btn" onclick="detail.close()">Close</button>
+    </div>
+  </dialog>
+
+  <!-- Barcode Scan Modal -->
+  <dialog id="scanner">
+    <div class="modal-head">
+      <strong>Scan barcode</strong>
+      <button class="btn" onclick="stopScan();scanner.close()">✖</button>
+    </div>
+    <div class="modal-body">
+      <div id="reader" style="width:100%"></div>
+      <div class="soft" style="margin-top:10px">Tip: Aim at UPC/EAN. If scanning fails, type the number manually.</div>
+    </div>
+  </dialog>
+
+  <script>
+  const $ = s => document.querySelector(s);
+  const $$ = s => [...document.querySelectorAll(s)];
+  const by = (field, desc=false) => (a,b)=> (a[field]??'') > (b[field]??'') ? (desc? -1:1) : (a[field]??'') < (b[field]??'') ? (desc? 1:-1) : 0;
+
+  const GENRES = ['Action','Adventure','Animation','Biography','Comedy','Crime','Documentary','Drama','Family','Fantasy','Film-Noir','History','Horror','Music','Musical','Mystery','Romance','Sci-Fi','Sport','Thriller','War','Western'];
+
+  // IndexedDB
+  const DB_NAME = 'movieLibrary.v2';
+  const STORE = 'movies';
+  let db;
+  function openDB(){
+    return new Promise((res,rej)=>{
+      const req = indexedDB.open(DB_NAME,1);
+      req.onupgradeneeded = (e)=>{
+        const db = e.target.result;
+        const st = db.createObjectStore(STORE,{keyPath:'id', autoIncrement:true});
+        st.createIndex('title','title',{unique:false});
+        st.createIndex('shelf','shelf',{unique:false});
+      };
+      req.onsuccess = ()=>{db=req.result;res(db)};
+      req.onerror = ()=>rej(req.error);
+    });
+  }
+  function tx(mode='readonly'){return db.transaction(STORE,mode).objectStore(STORE)}
+  const DB = {
+    async all(){return new Promise((res,rej)=>{const r=tx().getAll(); r.onsuccess=()=>res(r.result||[]); r.onerror=()=>rej(r.error)});},
+    async add(movie){return new Promise((res,rej)=>{const r=tx('readwrite').add(movie); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error)});},
+    async put(movie){return new Promise((res,rej)=>{const r=tx('readwrite').put(movie); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error)});},
+    async del(id){return new Promise((res,rej)=>{const r=tx('readwrite').delete(id); r.onsuccess=()=>res(); r.onerror=()=>rej(r.error)});},
+    async clear(){return new Promise((res,rej)=>{const r=tx('readwrite').clear(); r.onsuccess=()=>res(); r.onerror=()=>rej(r.error)});},
+  };
+
+  let MOVIES = [];
+  let CURRENT = null;
+
+  function renderGenreChoices(){
+    const box = $('#genre-box');
+    box.innerHTML = GENRES.map(g=>`<label><input type="checkbox" value="${g}"> ${g}</label>`).join('');
+    const fg = $('#f-genre'); GENRES.forEach(g=>{const o=document.createElement('option');o.textContent=g; fg.appendChild(o)});
+  }
+
+  function starSVG(fill){
+    return `<svg class="star" width="18" height="18" viewBox="0 0 24 24" fill="${fill? '#fde047':'none'}" stroke="#fde047" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15 9 22 9 17 14 19 21 12 17 5 21 7 14 2 9 9 9 12 2"/></svg>`;
+  }
+  function renderStars(el, value){
+    el.innerHTML = '';
+    const v = Number(value||0);
+    for(let i=1;i<=5;i++){
+      const btn = document.createElement('button');
+      btn.type='button'; btn.className='star-btn'; btn.title=i+' star';
+      btn.innerHTML = starSVG(i<=v);
+      btn.onclick = ()=>{renderStars(el,i); el.dataset.value = i};
+      el.appendChild(btn);
+    }
+    el.dataset.value = v;
+  }
+  function renderStarsStatic(value){let s=''; for(let i=1;i<=5;i++){s+=starSVG(i<=value)} return s;}
+
+  function decadeOf(y){ y=Number(y); if(!y) return ''; return Math.floor(y/10)*10 + 's'; }
+
+  function movieCard(m){
+    const cover = m.coverData ? `style="background-image:url('${m.coverData}')"` : '';
+    return `<article class="card" data-id="${m.id}">
+      <div class="cover" ${cover}>${m.coverData? '' : '<small>No cover</small>'}</div>
+      <div class="meta">
+        <div class="row"><div class="titleRow"><span class="shelf">#${m.shelf||'—'}</span><h3>${escapeHtml(m.title||'Untitled')}</h3></div><span class="pill">${m.year||''}</span></div>
+        <div class="row"><span class="badge">${escapeHtml(m.format||'')}</span><span class="badge">${escapeHtml(m.language||'')}</span><span class="badge">${escapeHtml(m.country||'')}</span></div>
+        <div class="row"><span class="soft">${escapeHtml((m.genres||[]).join(', '))}</span></div>
+        <div class="row"><span class="soft">${escapeHtml((m.tags||[]).slice(0,3).join(', '))}</span><span class="stars">${renderStarsStatic(m.rating||0)}</span></div>
+        <div class="row"><span class="soft">${escapeHtml(m.location||'')}</span><span class="pill">${escapeHtml(m.mpaa||'')}</span><span class="pill">${escapeHtml(decadeOf(m.year))}</span></div>
+      </div>
+    </article>`;
+  }
+
+  function escapeHtml(str){return String(str||'').replace(/[&<>"']/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[s]))}
+
+  function applyFilters(list){
+    const q = $('#q').value.trim().toLowerCase();
+    const g = $('#f-genre').value;
+    const sub = $('#f-sub').value.trim().toLowerCase();
+    const fmt = $('#f-format').value;
+    const yMin = Number($('#f-year-min').value||0);
+    const dec = $('#f-decade').value;
+    const lang = $('#f-lang').value.trim().toLowerCase();
+    const country = $('#f-country').value.trim().toLowerCase();
+    const mpaa = $('#f-mpaa').value;
+    const loc = $('#f-loc').value.trim().toLowerCase();
+    const rMin = Number($('#f-rate-min').value||0);
+
+    let out = list.filter(m=>{
+      let ok = true;
+      if(q){
+        const hay = [m.title,m.director,m.language,m.format,m.barcode,m.location,m.country,m.mpaa,(m.cast||[]).join(','),(m.tags||[]).join(','),(m.genres||[]).join(','),m.synopsis].join(' ').toLowerCase();
+        ok = hay.includes(q);
+      }
+      if(ok && g){ ok = (m.genres||[]).includes(g) }
+      if(ok && sub){ ok = (m.tags||[]).join(' ').toLowerCase().includes(sub) }
+      if(ok && fmt){ ok = (m.format||'')===fmt }
+      if(ok && yMin){ ok = Number(m.year||0) >= yMin }
+      if(ok && dec){ ok = decadeOf(m.year)===dec }
+      if(ok && lang){ ok = (m.language||'').toLowerCase().includes(lang) }
+      if(ok && country){ ok = (m.country||'').toLowerCase().includes(country) }
+      if(ok && mpaa){ ok = (m.mpaa||'')===mpaa }
+      if(ok && loc){ ok = (m.location||'').toLowerCase().includes(loc) }
+      if(ok && rMin){ ok = Number(m.rating||0) >= rMin }
+      return ok;
+    });
+
+    const sort = $('#sort').value; const desc = sort.startsWith('-'); const key = desc? sort.slice(1): sort; out.sort(by(key, desc));
+    return out;
+  }
+
+  function renderList(){
+    const el = $('#list');
+    const items = applyFilters(MOVIES);
+    if(items.length===0){ el.innerHTML=''; $('#empty').classList.remove('hidden'); return }
+    $('#empty').classList.add('hidden');
+    el.innerHTML = items.map(movieCard).join('');
+    $$('#list .card').forEach(card=>{ card.addEventListener('click',()=>openDetail(Number(card.dataset.id))) });
+  }
+
+  function nextSpine(){ const max = MOVIES.reduce((mx,m)=>Math.max(mx, Number(m.shelf||0)),0); return max + 1; }
+
+  function openEditor(movie){
+    $('#editor-title').textContent = movie? 'Edit movie' : 'Add movie';
+    $('#edit-id').value = movie? movie.id : '';
+
+    $('#title').value = movie?.title||'';
+    $('#year').value = movie?.year||'';
+    $('#director').value = movie?.director||'';
+    $('#runtime').value = movie?.runtime||'';
+    $('#format').value = movie?.format||'Blu‑ray';
+    $('#language').value = movie?.language||'';
+    $('#country').value = movie?.country||'';
+    $('#mpaa').value = movie?.mpaa||'';
+
+    $$('#genre-box input[type="checkbox"]').forEach(cb=>{ cb.checked = !!(movie?.genres||[]).includes(cb.value) });
+
+    $('#cast').value = (movie?.cast||[]).join(', ');
+    $('#tags').value = (movie?.tags||[]).join(', ');
+
+    $('#shelf').value = movie?.shelf || nextSpine();
+    $('#location').value = movie?.location||'';
+    $('#barcode').value = movie?.barcode||'';
+
+    renderStars($('#rate-edit'), movie?.rating||0);
+
+    $('#synopsis').value = movie?.synopsis||'';
+    $('#cover').value = '';
+    const canvas = $('#snap-canvas'); canvas.classList.add('hidden');
+
+    editor.showModal();
+  }
+
+  async function saveEditor(){
+    const id = Number($('#edit-id').value||0) || undefined;
+    const genres = $$('#genre-box input:checked').map(x=>x.value);
+    const cast = $('#cast').value.split(',').map(x=>x.trim()).filter(Boolean);
+    const tags = $('#tags').value.split(',').map(x=>x.trim()).filter(Boolean);
+    const rating = Number($('#rate-edit').dataset.value||0);
+
+    const movie = {
+      id,
+      title: $('#title').value.trim(),
+      year: Number($('#year').value||'')||'',
+      director: $('#director').value.trim(),
+      runtime: Number($('#runtime').value||'')||'',
+      format: $('#format').value,
+      language: $('#language').value.trim(),
+      country: $('#country').value.trim(),
+      mpaa: $('#mpaa').value,
+      genres, cast, tags,
+      shelf: Number($('#shelf').value)||'',
+      location: $('#location').value.trim(),
+      barcode: $('#barcode').value.trim(),
+      rating,
+      synopsis: $('#synopsis').value.trim(),
+      coverData: await readCoverData()
+    };
+
+    if(!movie.title){ alert('Title is required'); return; }
+
+    if(movie.id){
+      if(!movie.coverData){ const prev = MOVIES.find(m=>m.id===movie.id); movie.coverData = prev?.coverData||''; }
+      await DB.put(movie);
+    } else { const newId = await DB.add(movie); movie.id = newId; }
+
+    MOVIES = await DB.all(); renderList(); editor.close();
+  }
+
+  function readCoverData(){
+    return new Promise((res)=>{
+      const f = $('#cover').files?.[0];
+      const canvas = $('#snap-canvas');
+      if(f){ const r=new FileReader(); r.onload=()=>res(String(r.result)); r.readAsDataURL(f); return }
+      if(!canvas.classList.contains('hidden')){ res(canvas.toDataURL('image/jpeg',0.85)); return }
+      res('');
+    });
+  }
+
+  function openDetail(id){
+    const m = MOVIES.find(x=>x.id===id); if(!m) return;
+    CURRENT = m;
+    $('#d-title').textContent = m.title||''; $('#d-year').textContent = m.year||''; $('#d-shelf').textContent = '#'+(m.shelf||'—');
+    $('#d-format').textContent = m.format||''; $('#d-lang').textContent = m.language||''; $('#d-run').textContent = m.runtime||'';
+    $('#d-country').textContent = m.country||''; $('#d-mpaa').textContent = m.mpaa||'';
+    $('#d-dir').textContent = m.director||''; $('#d-cast').textContent = (m.cast||[]).join(', ');
+    $('#d-genres').textContent = (m.genres||[]).join(', ');
+    $('#d-tags').textContent = (m.tags||[]).join(', ');
+    $('#d-bar').textContent = m.barcode||''; $('#d-loc').textContent = m.location||'';
+    $('#d-rating').innerHTML = renderStarsStatic(m.rating||0);
+    $('#d-syn').textContent = m.synopsis||'';
+    $('#d-cover').src = m.coverData || '';
+    detail.showModal();
+  }
+
+  async function deleteCurrent(){ if(!CURRENT) return; if(!confirm('Delete this movie?')) return; await DB.del(CURRENT.id); CURRENT=null; MOVIES = await DB.all(); renderList(); detail.close(); }
+
+  ;['q','f-genre','f-sub','f-format','f-year-min','f-decade','f-lang','f-country','f-mpaa','f-loc','sort','f-rate-min'].forEach(id=>{
+    document.getElementById(id).addEventListener('input', renderList);
+    document.getElementById(id).addEventListener('change', renderList);
+  });
+  $('#btn-reset').onclick = ()=>{
+    ['q','f-genre','f-sub','f-format','f-year-min','f-decade','f-lang','f-country','f-mpaa','f-loc'].forEach(id=>document.getElementById(id).value='');
+    $('#f-rate-min').value='0'; renderList();
+  };
+
+  $('#btn-backup').onclick = ()=>{
+    const data = JSON.stringify(MOVIES, null, 2);
+    const blob = new Blob([data],{type:'application/json'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'movie-library.json'; a.click(); URL.revokeObjectURL(a.href);
+  };
+  $('#restore').addEventListener('change', async e=>{
+    const f = e.target.files?.[0]; if(!f) return;
+    const text = await f.text();
+    try{
+      const arr = JSON.parse(text); if(!Array.isArray(arr)) throw new Error('Invalid file');
+      await DB.clear(); for(const m of arr){ delete m.id; await DB.add(m) }
+      MOVIES = await DB.all(); renderList(); alert('Imported '+arr.length+' movies.');
+    }catch(err){ alert('Import failed: '+err.message) }
+    e.target.value='';
+  });
+  $('#btn-clear').onclick = async()=>{ if(!confirm('Delete ALL movies from this browser?')) return; await DB.clear(); MOVIES=[]; renderList(); };
+
+  // Barcode scanning
+  let html5Qrcode, scanning=false;
+  function startScan(){
+    if(typeof Html5Qrcode === 'undefined'){ alert('Scanner library not loaded. Enter barcode manually.'); return; }
+    scanner.showModal();
+    const f = {fps:10, qrbox:{width:320,height:160}, aspectRatio:1.8, formatsToSupport:[Html5QrcodeSupportedFormats.EAN_13,Html5QrcodeSupportedFormats.EAN_8,Html5QrcodeSupportedFormats.UPC_A,Html5QrcodeSupportedFormats.UPC_E]};
+    html5Qrcode = new Html5Qrcode('reader');
+    html5Qrcode.start({facingMode:'environment'}, f, onScanSuccess, onScanError).then(()=>scanning=true).catch(err=>{alert('Camera error: '+err); stopScan(); scanner.close();});
+  }
+  function stopScan(){ if(html5Qrcode && scanning){ html5Qrcode.stop().then(()=>{html5Qrcode.clear(); scanning=false}).catch(()=>{}) } }
+  function onScanSuccess(decodedText){ $('#barcode').value = String(decodedText||''); stopScan(); scanner.close(); }
+  function onScanError(err){ /* silent */ }
+  $('#btn-scan').onclick = startScan; $('#scan-inside').onclick = startScan;
+
+  // Cover snapshot
+  let stream, videoEl;
+  $('#btn-snap').onclick = async()=>{
+    try{
+      if(!navigator.mediaDevices?.getUserMedia){ alert('Camera not supported in this browser.'); return }
+      if(!videoEl){ videoEl = document.createElement('video'); videoEl.autoplay=true; videoEl.playsInline=true; videoEl.style.width='100%'; }
+      const canvas = $('#snap-canvas');
+      stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+      videoEl.srcObject = stream;
+      canvas.replaceWith(videoEl); videoEl.classList.remove('hidden');
+      videoEl.onclick = ()=>{
+        const c = document.createElement('canvas'); c.width=320; c.height=480; const ctx=c.getContext('2d');
+        const r = videoEl.videoWidth / videoEl.videoHeight; const targetR = c.width / c.height; let dw = videoEl.videoWidth, dh = videoEl.videoHeight, sx=0, sy=0;
+        if(r>targetR){ dh = videoEl.videoHeight; dw = dh*targetR; sx = (videoEl.videoWidth-dw)/2; } else { dw = videoEl.videoWidth; dh = dw/targetR; sy = (videoEl.videoHeight-dh)/2; }
+        ctx.drawImage(videoEl, sx, sy, dw, dh, 0,0,c.width,c.height);
+        videoEl.replaceWith(canvas); canvas.classList.remove('hidden');
+        canvas.getContext('2d').drawImage(c,0,0);
+        stream.getTracks().forEach(t=>t.stop());
+      };
+    }catch(err){ alert('Camera error: '+err.message) }
+  };
+
+  async function fetchSynopsis(){
+    const key = $('#omdb').value.trim(); if(!key){ alert('Enter an OMDb API key in the toolbar first.'); return }
+    const t = encodeURIComponent($('#title').value.trim()); if(!t){ alert('Enter a title first.'); return }
+    const y = encodeURIComponent($('#year').value||'');
+    const url = `https://www.omdbapi.com/?apikey=${key}&type=movie&t=${t}${y?`&y=${y}`:''}`;
+    try{
+      const r = await fetch(url); const j = await r.json();
+      if(j && j.Response!=='False'){
+        $('#synopsis').value = j.Plot || $('#synopsis').value || '';
+        if(!$('#year').value && j.Year) $('#year').value = parseInt(j.Year)||'';
+        if(!$('#runtime').value && j.Runtime) $('#runtime').value = parseInt(j.Runtime)||'';
+        if((j.Genre||'').length){ const G=j.Genre.split(',').map(x=>x.trim()); $$('#genre-box input').forEach(cb=>cb.checked = G.includes(cb.value)); }
+        if(!$('#language').value && j.Language) $('#language').value = j.Language.split(',')[0].trim();
+        if(!$('#country').value && j.Country) $('#country').value = j.Country.split(',')[0].trim();
+        if(!$('#mpaa').value && j.Rated && ['G','PG','PG-13','R','NC-17'].includes(j.Rated)) $('#mpaa').value = j.Rated;
+      } else { alert('Not found on OMDb. Try adjusting title/year.'); }
+    }catch(err){ alert('OMDb error: '+err.message) }
+  }
+  $('#btn-fetch').onclick = fetchSynopsis;
+
+  (async function init(){
+    renderGenreChoices();
+    await openDB();
+    MOVIES = await DB.all();
+    renderList();
+    $('#btn-add').onclick = ()=>openEditor();
+    $('#save').onclick = (e)=>{ e.preventDefault(); saveEditor(); };
+    $('#btn-edit').onclick = ()=>{ detail.close(); openEditor(CURRENT) };
+    $('#btn-delete').onclick = deleteCurrent;
+  })();
+  </script>
+</body>
+</html>
