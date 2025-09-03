@@ -536,18 +536,109 @@
     setTimeout(()=>document.getElementById('title')?.focus(), 50);
   }
 
-  function onScanSuccess(decodedText){
-    const code = String(decodedText||'').trim();
-    stopScan(); scanner.close();
-    if(!code) return;
+ // === UPC → product → OMDb enrichment ===
 
-    // If already cataloged, open it; otherwise auto-add then open editor
-    const found = MOVIES.find(m=>m.barcode===code);
-    if(found){
-      openDetail(found.id);
-    } else {
-      addMovieFromBarcode(code);
+// 1) UPC lookup via UPCitemdb (free, no key, ~100 req/day)
+async function lookupByUPC_UpcItemDb(upc){
+  // Docs: https://api.upcitemdb.com/prod/trial/lookup?upc=XXXXXXXXXXXX
+  const url = `https://api.upcitemdb.com/prod/trial/lookup?upc=${encodeURIComponent(upc)}`;
+  try {
+    const r = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    if (!r.ok) return null;
+    const j = await r.json();
+    if (j && j.code === 'OK' && Array.isArray(j.items) && j.items.length){
+      const it = j.items[0] || {};
+      const title = (it.title || '').trim();
+      const cat = (it.category || '').toLowerCase();
+      const format = detectFormatFromText(`${title} ${it.description||''} ${cat}`);
+      const image = Array.isArray(it.images) && it.images[0] ? it.images[0] : '';
+      return { title, description: it.description || '', image, category: it.category || '', format };
     }
+  } catch (e){ console.warn('UPCitemdb error', e); }
+  return null;
+}
+
+function detectFormatFromText(txt){
+  txt = (txt||'').toLowerCase();
+  if (/\b(4k|uhd|ultra\s*hd)\b/.test(txt)) return '4K UHD';
+  if (/blu[-\s]?ray/.test(txt)) return 'Blu-ray';
+  if (/\bdvd\b/.test(txt)) return 'DVD';
+  if (/vhs/.test(txt)) return 'VHS';
+  return 'Blu-ray';
+}
+function cleanTitle(t){
+  return String(t||'')
+    .replace(/\s*\((?:blu[-\s]?ray|dvd|uhd|4k|digital|combo|\w+ edition)\)/ig,'')
+    .replace(/\s*\[(?:blu[-\s]?ray|dvd|uhd|4k|digital|combo|\w+ edition)\]/ig,'')
+    .replace(/\s+\b(4k|uhd|ultra\s*hd|blu[-\s]?ray|dvd|digital|combo|limited|widescreen|\w+ edition)\b/ig,'')
+    .replace(/[:\-]\s*(blu[-\s]?ray|dvd|uhd|4k).*/ig,'')
+    .replace(/\s{2,}/g,' ')
+    .trim();
+}
+function guessYear(t){
+  const m = String(t||'').match(/\b(19\d{2}|20\d{2})\b/);
+  return m ? Number(m[1]) : '';
+}
+
+// 2) Title → full metadata via OMDb (needs your OMDb API key in the toolbar input)
+async function fetchOmdbByTitle(title, year){
+  const key = document.getElementById('omdb')?.value.trim();
+  if (!key || !title) return null;
+  const url = `https://www.omdbapi.com/?apikey=${encodeURIComponent(key)}&type=movie&t=${encodeURIComponent(title)}${year?`&y=${year}`:''}`;
+  try {
+    const r = await fetch(url);
+    const j = await r.json();
+    if (j && j.Response !== 'False') return j;
+  } catch (e){ console.warn('OMDb error', e); }
+  return null;
+}
+
+// 3) Orchestrate: UPC → (product) → OMDb → save + open editor
+async function createMovieFromUPC(code){
+  let movie = {
+    barcode: code,
+    shelf: nextSpine(),
+    title: `Barcode ${code}`,
+    year: '', runtime: '',
+    format: 'Blu-ray', language: '', country: '', mpaa: '',
+    genres: [], cast: [], tags: [],
+    director: '', rating: 0, synopsis: '', coverData: ''
+  };
+
+  // UPC → product (title/cover/format/desc)
+  const upc = await lookupByUPC_UpcItemDb(code);
+  if (upc && upc.title){
+    const t = cleanTitle(upc.title);
+    movie.title = t || movie.title;
+    movie.format = upc.format || movie.format;
+    movie.coverData = upc.image || movie.coverData;   // use remote URL (fine for <img> / CSS background)
+    movie.synopsis = upc.description || movie.synopsis;
+    const y = guessYear(upc.title); if (y) movie.year = y;
+  }
+
+  // Title → OMDb (if key present) to fully populate all fields
+  const omdb = await fetchOmdbByTitle(movie.title, movie.year);
+  if (omdb){
+    movie.title    = omdb.Title   || movie.title;
+    movie.year     = parseInt(omdb.Year)     || movie.year || '';
+    movie.runtime  = parseInt(omdb.Runtime)  || movie.runtime || '';
+    movie.language = (omdb.Language||'').split(',')[0] || movie.language;
+    movie.country  = (omdb.Country ||'').split(',')[0] || movie.country;
+    if (['G','PG','PG-13','R','NC-17'].includes(omdb.Rated)) movie.mpaa = omdb.Rated;
+    movie.genres   = (omdb.Genre||'').split(',').map(s=>s.trim()).filter(Boolean);
+    movie.director = omdb.Director || movie.director;
+    movie.cast     = (omdb.Actors||'').split(',').map(s=>s.trim()).filter(Boolean);
+    movie.synopsis = omdb.Plot || movie.synopsis;
+    if (omdb.Poster && omdb.Poster!=='N/A') movie.coverData = omdb.Poster;
+  }
+
+  // Save + show editor pre-filled
+  const id = await DB.add(movie); movie.id = id;
+  MOVIES = await DB.all(); renderList();
+  openEditor(movie);
+  setTimeout(()=>document.getElementById('title')?.focus(), 50);
+}
+
   }
   function onScanError(err){ /* silent */ }
   $('#btn-scan').onclick = startScan; $('#scan-inside').onclick = startScan;
