@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Home Movie Library — Tailored 9 Categories</title>
+  <title>Home Movie Library — Scan → Auto‑Add</title>
   <style>
     :root{
       --bg:#0f1115;--panel:#151823;--muted:#99a3b3;--text:#e8ecf3;--brand:#6ee7b7;--accent:#60a5fa;--danger:#ef4444;--warn:#f59e0b;--ok:#22c55e;
@@ -11,8 +11,7 @@
     }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{margin:0;background:linear-gradient(180deg,#0b0e13,#0f1117 20%,#0f1115);color:var(--text);font:14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";}
-    a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+    body{margin:0;background:linear-gradient(180deg,#0b0e13,#0f1117 20%,#0f1115);color:var(--text);font:14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji"}
     .app{max-width:1200px;margin:0 auto;padding:20px}
     header{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:16px}
     .title{display:flex;align-items:center;gap:12px}
@@ -47,8 +46,6 @@
     .shelf{background:#132918;border:1px solid #205c33;color:#b7f6c7;padding:2px 8px;border-radius:999px;font-weight:700}
 
     .stars{display:inline-flex;gap:2px}
-    .stars .star{filter:drop-shadow(0 0 0 rgba(0,0,0,0.2))}
-
     .empty{opacity:.7;padding:30px;text-align:center;border:1px dashed var(--border);border-radius:16px}
 
     dialog{border:1px solid var(--border);background:var(--panel);color:var(--text);border-radius:16px;max-width:860px;width:calc(100% - 24px);padding:0}
@@ -70,13 +67,11 @@
     summary{cursor:pointer}
 
     .pill{background:#14192b;border:1px solid var(--border);padding:6px 10px;border-radius:999px}
-
     .soft{opacity:.7}
     .hidden{display:none}
     .flex{display:flex}
     .gap-8{gap:8px}
   </style>
-  <!-- Barcode scanner lib -->
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
 <body>
@@ -86,13 +81,13 @@
         <div class="logo">🎞️</div>
         <div>
           <h1>Home Movie Library</h1>
-          <div class="soft">Tailored 9 categories • Search • Rate • Locate</div>
+          <div class="soft">Scan → Auto‑add → Auto‑fill from the web</div>
         </div>
       </div>
       <div class="toolbar" style="width:100%">
         <div class="search" style="flex:1">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-          <input id="q" placeholder="Search across all fields (title, cast, tags, synopsis, location, barcode…)" />
+          <input id="q" placeholder="Search (title, cast, tags, synopsis, location, barcode…)" />
         </div>
         <button id="btn-add" class="btn primary">➕ Add movie</button>
         <button id="btn-scan" class="btn">📷 Scan barcode</button>
@@ -105,10 +100,9 @@
     <details class="help">
       <summary>Quick help</summary>
       <ul>
-        <li><b>9 core categories</b> for organization: <i>Genre, Sub-genre, Release Year/Decade, Director, Cast, Format, Language, Country/Region, MPAA rating</i>.</li>
-        <li>Extras: <b>Spine #</b> (auto), <b>Location</b>, <b>Barcode</b>, <b>Cover</b>, <b>Synopsis</b>, and your <b>personal rating</b>.</li>
-        <li>Data stays in your browser (IndexedDB). Use <b>Export/Import</b> to back up or move to another device.</li>
-        <li>Optional: put an <b>OMDb API key</b> in the toolbar; in the editor click <i>Fetch synopsis</i> to auto-fill plot/year/runtime/genres by Title.</li>
+        <li><b>9 categories</b>: Genre, Sub‑genre, Year/Decade, Director, Cast, Format, Language, Country/Region, MPAA.</li>
+        <li>Extras: <b>Spine #</b> (auto), <b>Location</b>, <b>Barcode</b>, <b>Cover</b>, <b>Synopsis</b>, <b>Your rating</b>.</li>
+        <li>Put your <b>OMDb API key</b> in the toolbar field below for richer auto‑fill after scanning.</li>
       </ul>
     </details>
 
@@ -125,14 +119,12 @@
           <option value="rating">My rating ↑</option>
         </select>
       </span>
-      <span class="chip">Genre
-        <select id="f-genre"><option value="">Any</option></select>
-      </span>
-      <span class="chip">Sub-genre <input id="f-sub" type="text" placeholder="e.g., heist"></span>
+      <span class="chip">Genre <select id="f-genre"><option value="">Any</option></select></span>
+      <span class="chip">Sub‑genre <input id="f-sub" type="text" placeholder="e.g., heist"></span>
       <span class="chip">Format
         <select id="f-format">
           <option value="">Any</option>
-          <option>4K UHD</option><option>Blu-ray</option><option>DVD</option><option>Digital</option><option>VHS</option>
+          <option>4K UHD</option><option>Blu‑ray</option><option>DVD</option><option>Digital</option><option>VHS</option>
         </select>
       </span>
       <span class="chip">Year ≥ <input id="f-year-min" type="number" placeholder="1990"></span>
@@ -157,7 +149,7 @@
     <form method="dialog" class="movie" id="movie-form">
       <div class="modal-head">
         <strong id="editor-title">Add movie</strong>
-        <button class="btn" value="close">✖</button>
+        <button class="btn" value="close" type="button" id="btn-close-editor">✖</button>
       </div>
       <div class="modal-body">
         <div class="field"><label>Title</label><input id="title" required></div>
@@ -166,7 +158,7 @@
         <div class="field"><label>Runtime (min)</label><input id="runtime" type="number" min="1" placeholder="123"></div>
 
         <div class="field"><label>Format</label>
-          <select id="format"><option>4K UHD</option><option>Blu-ray</option><option>DVD</option><option>Digital</option><option>VHS</option></select>
+          <select id="format"><option>4K UHD</option><option>Blu‑ray</option><option>DVD</option><option>Digital</option><option>VHS</option></select>
         </div>
         <div class="field"><label>Language</label><input id="language" placeholder="English"></div>
         <div class="field"><label>Country/Region</label><input id="country" placeholder="USA, Japan…"></div>
@@ -178,10 +170,10 @@
           <div id="genre-box" class="genres"></div>
         </div>
 
-        <div class="field full"><label>Cast (comma-separated)</label><input id="cast" placeholder="Keanu Reeves, Carrie-Anne Moss"></div>
-        <div class="field full"><label>Sub-genres / Tags (comma-separated)</label><input id="tags" placeholder="heist, time-travel"></div>
+        <div class="field full"><label>Cast (comma‑separated)</label><input id="cast" placeholder="Keanu Reeves, Carrie‑Anne Moss"></div>
+        <div class="field full"><label>Sub‑genres / Tags (comma‑separated)</label><input id="tags" placeholder="heist, time‑travel"></div>
 
-        <div class="field"><label>Spine # (auto)</label><input id="shelf" type="number" min="1" placeholder="Auto"/></div>
+        <div class="field"><label>Spine # (auto)</label><input id="shelf" type="number" min="1" placeholder="Auto"></div>
         <div class="field"><label>Location</label><input id="location" placeholder="Room • Shelf • Row"></div>
 
         <div class="field"><label>Barcode (UPC/EAN)</label>
@@ -207,8 +199,8 @@
         <input id="edit-id" type="hidden">
       </div>
       <div class="modal-foot">
-        <button class="btn" value="close">Cancel</button>
-        <button id="save" class="btn primary" value="default">💾 Save</button>
+        <button class="btn" type="button" id="btn-cancel">Cancel</button>
+        <button id="save" class="btn primary" type="button">💾 Save</button>
       </div>
     </form>
   </dialog>
@@ -221,7 +213,7 @@
         <strong id="d-title"></strong>
         <span id="d-year" class="pill"></span>
       </div>
-      <button class="btn" onclick="detail.close()">✖</button>
+      <button class="btn" type="button" id="btn-close-detail">✖</button>
     </div>
     <div class="modal-body">
       <div class="flex gap-8">
@@ -233,7 +225,7 @@
           <div>Director: <b id="d-dir"></b></div>
           <div>Cast: <span id="d-cast" class="soft"></span></div>
           <div>Genres: <span id="d-genres" class="soft"></span></div>
-          <div>Sub-genres: <span id="d-tags" class="soft"></span></div>
+          <div>Sub‑genres: <span id="d-tags" class="soft"></span></div>
           <div>Barcode: <span id="d-bar" class="pill"></span></div>
           <div>Location: <b id="d-loc"></b></div>
           <div class="flex">My rating: <span id="d-rating" class="stars" style="margin-left:6px"></span></div>
@@ -245,9 +237,9 @@
       </div>
     </div>
     <div class="modal-foot">
-      <button id="btn-edit" class="btn">✏️ Edit</button>
-      <button id="btn-delete" class="btn danger">🗑 Delete</button>
-      <button class="btn" onclick="detail.close()">Close</button>
+      <button id="btn-edit" class="btn" type="button">✏️ Edit</button>
+      <button id="btn-delete" class="btn danger" type="button">🗑 Delete</button>
+      <button class="btn" type="button" id="btn-close-detail-2">Close</button>
     </div>
   </dialog>
 
@@ -255,23 +247,34 @@
   <dialog id="scanner">
     <div class="modal-head">
       <strong>Scan barcode</strong>
-      <button class="btn" onclick="stopScan();scanner.close()">✖</button>
+      <button class="btn" type="button" id="btn-close-scanner">✖</button>
     </div>
     <div class="modal-body">
       <div id="reader" style="width:100%"></div>
-      <div class="soft" style="margin-top:10px">Tip: Aim at UPC/EAN. If scanning fails, type the number manually.</div>
+      <div class="soft" style="margin-top:10px">Tip: Aim at UPC/EAN. HTTPS required for camera access.</div>
     </div>
   </dialog>
 
   <script>
+  'use strict';
   const $ = s => document.querySelector(s);
-  const $$ = s => [...document.querySelectorAll(s)];
-  const by = (field, desc=false) => (a,b)=> (a[field]??'') > (b[field]??'') ? (desc? -1:1) : (a[field]??'') < (b[field]??'') ? (desc? 1:-1) : 0;
+  const $$ = s => Array.from(document.querySelectorAll(s));
+  const els = {
+    list: document.getElementById('list'),
+    empty: document.getElementById('empty'),
+    q: document.getElementById('q'),
+    sort: document.getElementById('sort'),
+    omdb: document.getElementById('omdb'),
+    editor: document.getElementById('editor'),
+    detail: document.getElementById('detail'),
+    scanner: document.getElementById('scanner'),
+    reader: document.getElementById('reader'),
+  };
 
   const GENRES = ['Action','Adventure','Animation','Biography','Comedy','Crime','Documentary','Drama','Family','Fantasy','Film-Noir','History','Horror','Music','Musical','Mystery','Romance','Sci-Fi','Sport','Thriller','War','Western'];
 
   // IndexedDB
-  const DB_NAME = 'movieLibrary.v2';
+  const DB_NAME = 'movieLibrary.v4';
   const STORE = 'movies';
   let db;
   function openDB(){
@@ -299,30 +302,15 @@
   let MOVIES = [];
   let CURRENT = null;
 
-  function renderGenreChoices(){
-    const box = $('#genre-box');
-    box.innerHTML = GENRES.map(g=>`<label><input type="checkbox" value="${g}"> ${g}</label>`).join('');
-    const fg = $('#f-genre'); GENRES.forEach(g=>{const o=document.createElement('option');o.textContent=g; fg.appendChild(o)});
-  }
-
-  function starSVG(fill){
-    return `<svg class="star" width="18" height="18" viewBox="0 0 24 24" fill="${fill? '#fde047':'none'}" stroke="#fde047" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15 9 22 9 17 14 19 21 12 17 5 21 7 14 2 9 9 9 12 2"/></svg>`;
-  }
-  function renderStars(el, value){
-    el.innerHTML = '';
-    const v = Number(value||0);
-    for(let i=1;i<=5;i++){
-      const btn = document.createElement('button');
-      btn.type='button'; btn.className='star-btn'; btn.title=i+' star';
-      btn.innerHTML = starSVG(i<=v);
-      btn.onclick = ()=>{renderStars(el,i); el.dataset.value = i};
-      el.appendChild(btn);
-    }
-    el.dataset.value = v;
-  }
-  function renderStarsStatic(value){let s=''; for(let i=1;i<=5;i++){s+=starSVG(i<=value)} return s;}
-
+  // Utilities
+  const by = (field, desc=false) => (a,b)=> (a[field]??'') > (b[field]??'') ? (desc? -1:1) : (a[field]??'') < (b[field]??'') ? (desc? 1:-1) : 0;
+  function escapeHtml(str){return String(str||'').replace(/[&<>"']/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[s]))}
+  function starSVG(fill){return `<svg class="star" width="18" height="18" viewBox="0 0 24 24" fill="${fill? '#fde047':'none'}" stroke="#fde047" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15 9 22 9 17 14 19 21 12 17 5 21 7 14 2 9 9 9 12 2"/></svg>`}
+  function renderStars(el, value){ el.innerHTML=''; const v=Number(value||0); for(let i=1;i<=5;i++){ const b=document.createElement('button'); b.type='button'; b.className='star-btn'; b.title=i+' star'; b.innerHTML=starSVG(i<=v); b.onclick=()=>{renderStars(el,i); el.dataset.value=i}; el.appendChild(b);} el.dataset.value=v; }
+  function renderStarsStatic(value){let s=''; for(let i=1;i<=5;i++){s+=starSVG(i<=value)} return s}
   function decadeOf(y){ y=Number(y); if(!y) return ''; return Math.floor(y/10)*10 + 's'; }
+
+  function renderGenreChoices(){ const box = document.getElementById('genre-box'); box.innerHTML = GENRES.map(g=>`<label><input type="checkbox" value="${g}"> ${g}</label>`).join(''); const fg = document.getElementById('f-genre'); GENRES.forEach(g=>{const o=document.createElement('option');o.textContent=g; fg.appendChild(o)}); }
 
   function movieCard(m){
     const cover = m.coverData ? `style="background-image:url('${m.coverData}')"` : '';
@@ -338,20 +326,18 @@
     </article>`;
   }
 
-  function escapeHtml(str){return String(str||'').replace(/[&<>\"']/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]))}
-
   function applyFilters(list){
-    const q = $('#q').value.trim().toLowerCase();
-    const g = $('#f-genre').value;
-    const sub = $('#f-sub').value.trim().toLowerCase();
-    const fmt = $('#f-format').value;
-    const yMin = Number($('#f-year-min').value||0);
-    const dec = $('#f-decade').value;
-    const lang = $('#f-lang').value.trim().toLowerCase();
-    const country = $('#f-country').value.trim().toLowerCase();
-    const mpaa = $('#f-mpaa').value;
-    const loc = $('#f-loc').value.trim().toLowerCase();
-    const rMin = Number($('#f-rate-min').value||0);
+    const q = els.q.value.trim().toLowerCase();
+    const g = document.getElementById('f-genre').value;
+    const sub = document.getElementById('f-sub').value.trim().toLowerCase();
+    const fmt = document.getElementById('f-format').value;
+    const yMin = Number(document.getElementById('f-year-min').value||0);
+    const dec = document.getElementById('f-decade').value;
+    const lang = document.getElementById('f-lang').value.trim().toLowerCase();
+    const country = document.getElementById('f-country').value.trim().toLowerCase();
+    const mpaa = document.getElementById('f-mpaa').value;
+    const loc = document.getElementById('f-loc').value.trim().toLowerCase();
+    const rMin = Number(document.getElementById('f-rate-min').value||0);
 
     let out = list.filter(m=>{
       let ok = true;
@@ -372,75 +358,74 @@
       return ok;
     });
 
-    const sort = $('#sort').value; const desc = sort.startsWith('-'); const key = desc? sort.slice(1): sort; out.sort(by(key, desc));
+    const sort = els.sort.value; const desc = sort.startsWith('-'); const key = desc? sort.slice(1): sort; out.sort(by(key, desc));
     return out;
   }
 
   function renderList(){
-    const el = $('#list');
     const items = applyFilters(MOVIES);
-    if(items.length===0){ el.innerHTML=''; $('#empty').classList.remove('hidden'); return }
-    $('#empty').classList.add('hidden');
-    el.innerHTML = items.map(movieCard).join('');
+    if(items.length===0){ els.list.innerHTML=''; els.empty.classList.remove('hidden'); return }
+    els.empty.classList.add('hidden');
+    els.list.innerHTML = items.map(movieCard).join('');
     $$('#list .card').forEach(card=>{ card.addEventListener('click',()=>openDetail(Number(card.dataset.id))) });
   }
 
   function nextSpine(){ const max = MOVIES.reduce((mx,m)=>Math.max(mx, Number(m.shelf||0)),0); return max + 1; }
 
   function openEditor(movie){
-    $('#editor-title').textContent = movie? 'Edit movie' : 'Add movie';
-    $('#edit-id').value = movie? movie.id : '';
+    document.getElementById('editor-title').textContent = movie? 'Edit movie' : 'Add movie';
+    document.getElementById('edit-id').value = movie? movie.id : '';
 
-    $('#title').value = movie?.title||'';
-    $('#year').value = movie?.year||'';
-    $('#director').value = movie?.director||'';
-    $('#runtime').value = movie?.runtime||'';
-    $('#format').value = movie?.format||'Blu-ray';
-    $('#language').value = movie?.language||'';
-    $('#country').value = movie?.country||'';
-    $('#mpaa').value = movie?.mpaa||'';
+    document.getElementById('title').value = movie?.title||'';
+    document.getElementById('year').value = movie?.year||'';
+    document.getElementById('director').value = movie?.director||'';
+    document.getElementById('runtime').value = movie?.runtime||'';
+    document.getElementById('format').value = movie?.format||'Blu‑ray';
+    document.getElementById('language').value = movie?.language||'';
+    document.getElementById('country').value = movie?.country||'';
+    document.getElementById('mpaa').value = movie?.mpaa||'';
 
     $$('#genre-box input[type="checkbox"]').forEach(cb=>{ cb.checked = !!(movie?.genres||[]).includes(cb.value) });
 
-    $('#cast').value = (movie?.cast||[]).join(', ');
-    $('#tags').value = (movie?.tags||[]).join(', ');
+    document.getElementById('cast').value = (movie?.cast||[]).join(', ');
+    document.getElementById('tags').value = (movie?.tags||[]).join(', ');
 
-    $('#shelf').value = movie?.shelf || nextSpine();
-    $('#location').value = movie?.location||'';
-    $('#barcode').value = movie?.barcode||'';
+    document.getElementById('shelf').value = movie?.shelf || nextSpine();
+    document.getElementById('location').value = movie?.location||'';
+    document.getElementById('barcode').value = movie?.barcode||'';
 
-    renderStars($('#rate-edit'), movie?.rating||0);
+    renderStars(document.getElementById('rate-edit'), movie?.rating||0);
 
-    $('#synopsis').value = movie?.synopsis||'';
-    $('#cover').value = '';
-    const canvas = $('#snap-canvas'); canvas.classList.add('hidden');
+    document.getElementById('synopsis').value = movie?.synopsis||'';
+    document.getElementById('cover').value = '';
+    const canvas = document.getElementById('snap-canvas'); canvas.classList.add('hidden');
 
-    editor.showModal();
+    els.editor.showModal();
   }
 
   async function saveEditor(){
-    const id = Number($('#edit-id').value||0) || undefined;
+    const id = Number(document.getElementById('edit-id').value||0) || undefined;
     const genres = $$('#genre-box input:checked').map(x=>x.value);
-    const cast = $('#cast').value.split(',').map(x=>x.trim()).filter(Boolean);
-    const tags = $('#tags').value.split(',').map(x=>x.trim()).filter(Boolean);
-    const rating = Number($('#rate-edit').dataset.value||0);
+    const cast = document.getElementById('cast').value.split(',').map(x=>x.trim()).filter(Boolean);
+    const tags = document.getElementById('tags').value.split(',').map(x=>x.trim()).filter(Boolean);
+    const rating = Number(document.getElementById('rate-edit').dataset.value||0);
 
     const movie = {
       id,
-      title: $('#title').value.trim(),
-      year: Number($('#year').value||'')||'',
-      director: $('#director').value.trim(),
-      runtime: Number($('#runtime').value||'')||'',
-      format: $('#format').value,
-      language: $('#language').value.trim(),
-      country: $('#country').value.trim(),
-      mpaa: $('#mpaa').value,
+      title: document.getElementById('title').value.trim(),
+      year: Number(document.getElementById('year').value||'')||'',
+      director: document.getElementById('director').value.trim(),
+      runtime: Number(document.getElementById('runtime').value||'')||'',
+      format: document.getElementById('format').value,
+      language: document.getElementById('language').value.trim(),
+      country: document.getElementById('country').value.trim(),
+      mpaa: document.getElementById('mpaa').value,
       genres, cast, tags,
-      shelf: Number($('#shelf').value)||'',
-      location: $('#location').value.trim(),
-      barcode: $('#barcode').value.trim(),
+      shelf: Number(document.getElementById('shelf').value)||'',
+      location: document.getElementById('location').value.trim(),
+      barcode: document.getElementById('barcode').value.trim(),
       rating,
-      synopsis: $('#synopsis').value.trim(),
+      synopsis: document.getElementById('synopsis').value.trim(),
       coverData: await readCoverData()
     };
 
@@ -451,13 +436,13 @@
       await DB.put(movie);
     } else { const newId = await DB.add(movie); movie.id = newId; }
 
-    MOVIES = await DB.all(); renderList(); editor.close();
+    MOVIES = await DB.all(); renderList(); els.editor.close();
   }
 
   function readCoverData(){
     return new Promise((res)=>{
-      const f = $('#cover').files?.[0];
-      const canvas = $('#snap-canvas');
+      const f = document.getElementById('cover').files?.[0];
+      const canvas = document.getElementById('snap-canvas');
       if(f){ const r=new FileReader(); r.onload=()=>res(String(r.result)); r.readAsDataURL(f); return }
       if(!canvas.classList.contains('hidden')){ res(canvas.toDataURL('image/jpeg',0.85)); return }
       res('');
@@ -467,189 +452,111 @@
   function openDetail(id){
     const m = MOVIES.find(x=>x.id===id); if(!m) return;
     CURRENT = m;
-    $('#d-title').textContent = m.title||''; $('#d-year').textContent = m.year||''; $('#d-shelf').textContent = '#'+(m.shelf||'—');
-    $('#d-format').textContent = m.format||''; $('#d-lang').textContent = m.language||''; $('#d-run').textContent = m.runtime||'';
-    $('#d-country').textContent = m.country||''; $('#d-mpaa').textContent = m.mpaa||'';
-    $('#d-dir').textContent = m.director||''; $('#d-cast').textContent = (m.cast||[]).join(', ');
-    $('#d-genres').textContent = (m.genres||[]).join(', ');
-    $('#d-tags').textContent = (m.tags||[]).join(', ');
-    $('#d-bar').textContent = m.barcode||''; $('#d-loc').textContent = m.location||'';
-    $('#d-rating').innerHTML = renderStarsStatic(m.rating||0);
-    $('#d-syn').textContent = m.synopsis||'';
-    $('#d-cover').src = m.coverData || '';
-    detail.showModal();
+    document.getElementById('d-title').textContent = m.title||''; document.getElementById('d-year').textContent = m.year||''; document.getElementById('d-shelf').textContent = '#'+(m.shelf||'—');
+    document.getElementById('d-format').textContent = m.format||''; document.getElementById('d-lang').textContent = m.language||''; document.getElementById('d-run').textContent = m.runtime||'';
+    document.getElementById('d-country').textContent = m.country||''; document.getElementById('d-mpaa').textContent = m.mpaa||'';
+    document.getElementById('d-dir').textContent = m.director||''; document.getElementById('d-cast').textContent = (m.cast||[]).join(', ');
+    document.getElementById('d-genres').textContent = (m.genres||[]).join(', ');
+    document.getElementById('d-tags').textContent = (m.tags||[]).join(', ');
+    document.getElementById('d-bar').textContent = m.barcode||''; document.getElementById('d-loc').textContent = m.location||'';
+    document.getElementById('d-rating').innerHTML = renderStarsStatic(m.rating||0);
+    document.getElementById('d-syn').textContent = m.synopsis||'';
+    document.getElementById('d-cover').src = m.coverData || '';
+    els.detail.showModal();
   }
 
-  async function deleteCurrent(){ if(!CURRENT) return; if(!confirm('Delete this movie?')) return; await DB.del(CURRENT.id); CURRENT=null; MOVIES = await DB.all(); renderList(); detail.close(); }
+  async function deleteCurrent(){ if(!CURRENT) return; if(!confirm('Delete this movie?')) return; await DB.del(CURRENT.id); CURRENT=null; MOVIES = await DB.all(); renderList(); els.detail.close(); }
 
-  ;['q','f-genre','f-sub','f-format','f-year-min','f-decade','f-lang','f-country','f-mpaa','f-loc','sort','f-rate-min'].forEach(id=>{
-    document.getElementById(id).addEventListener('input', renderList);
-    document.getElementById(id).addEventListener('change', renderList);
-  });
-  $('#btn-reset').onclick = ()=>{
-    ['q','f-genre','f-sub','f-format','f-year-min','f-decade','f-lang','f-country','f-mpaa','f-loc'].forEach(id=>document.getElementById(id).value='');
-    $('#f-rate-min').value='0'; renderList();
-  };
+  function bindFilters(){
+    ['q','f-genre','f-sub','f-format','f-year-min','f-decade','f-lang','f-country','f-mpaa','f-loc','sort','f-rate-min'].forEach(id=>{
+      const el = document.getElementById(id); if(!el) return;
+      el.addEventListener('input', renderList); el.addEventListener('change', renderList);
+    });
+    document.getElementById('btn-reset').onclick = ()=>{
+      ['q','f-genre','f-sub','f-format','f-year-min','f-decade','f-lang','f-country','f-mpaa','f-loc'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+      document.getElementById('f-rate-min').value='0'; renderList();
+    };
+  }
 
-  $('#btn-backup').onclick = ()=>{
-    const data = JSON.stringify(MOVIES, null, 2);
-    const blob = new Blob([data],{type:'application/json'});
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'movie-library.json'; a.click(); URL.revokeObjectURL(a.href);
-  };
-  $('#restore').addEventListener('change', async e=>{
-    const f = e.target.files?.[0]; if(!f) return;
-    const text = await f.text();
-    try{
-      const arr = JSON.parse(text); if(!Array.isArray(arr)) throw new Error('Invalid file');
-      await DB.clear(); for(const m of arr){ delete m.id; await DB.add(m) }
-      MOVIES = await DB.all(); renderList(); alert('Imported '+arr.length+' movies.');
-    }catch(err){ alert('Import failed: '+err.message) }
-    e.target.value='';
-  });
-  $('#btn-clear').onclick = async()=>{ if(!confirm('Delete ALL movies from this browser?')) return; await DB.clear(); MOVIES=[]; renderList(); };
+  // Export / Import / Clear
+  function bindDataButtons(){
+    document.getElementById('btn-backup').onclick = ()=>{
+      const data = JSON.stringify(MOVIES, null, 2);
+      const blob = new Blob([data],{type:'application/json'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'movie-library.json'; a.click(); URL.revokeObjectURL(a.href);
+    };
+    document.getElementById('restore').addEventListener('change', async e=>{
+      const f = e.target.files?.[0]; if(!f) return;
+      const text = await f.text();
+      try{
+        const arr = JSON.parse(text); if(!Array.isArray(arr)) throw new Error('Invalid file');
+        await DB.clear(); for(const m of arr){ delete m.id; await DB.add(m) }
+        MOVIES = await DB.all(); renderList(); alert('Imported '+arr.length+' movies.');
+      }catch(err){ alert('Import failed: '+err.message) }
+      e.target.value='';
+    });
+    document.getElementById('btn-clear').onclick = async()=>{ if(!confirm('Delete ALL movies from this browser?')) return; await DB.clear(); MOVIES=[]; renderList(); };
+  }
 
   // Barcode scanning
-  let html5Qrcode, scanning=false;
+  let html5Qrcode = null, scanning=false;
   function startScan(){
     if(typeof Html5Qrcode === 'undefined'){ alert('Scanner library not loaded. Enter barcode manually.'); return; }
-    scanner.showModal();
+    els.scanner.showModal();
     const f = {fps:10, qrbox:{width:320,height:160}, aspectRatio:1.8, formatsToSupport:[Html5QrcodeSupportedFormats.EAN_13,Html5QrcodeSupportedFormats.EAN_8,Html5QrcodeSupportedFormats.UPC_A,Html5QrcodeSupportedFormats.UPC_E]};
     html5Qrcode = new Html5Qrcode('reader');
-    html5Qrcode.start({facingMode:'environment'}, f, onScanSuccess, onScanError).then(()=>scanning=true).catch(err=>{alert('Camera error: '+err); stopScan(); scanner.close();});
+    html5Qrcode.start({facingMode:'environment'}, f, onScanSuccess, onScanError).then(()=>scanning=true).catch(err=>{alert('Camera error: '+err); stopScan(); els.scanner.close();});
   }
   function stopScan(){ if(html5Qrcode && scanning){ html5Qrcode.stop().then(()=>{html5Qrcode.clear(); scanning=false}).catch(()=>{}) } }
 
-  // Auto-add a minimal movie record from a scanned barcode and open editor
-  async function addMovieFromBarcode(code){
-    const movie = {
-      title: `Barcode ${code}`,
-      year: '', director: '', runtime: '',
-      format: 'Blu-ray', language: '', country: '', mpaa: '',
-      genres: [], cast: [], tags: [],
-      shelf: nextSpine(), location: '', barcode: code,
-      rating: 0, synopsis: '', coverData: ''
-    };
-    const newId = await DB.add(movie); movie.id = newId;
-    MOVIES = await DB.all(); renderList();
-    // Jump straight into edit so you can refine / fetch synopsis by title
-    openEditor(movie);
-    setTimeout(()=>document.getElementById('title')?.focus(), 50);
+  // === UPC → product → OMDb enrichment ===
+  async function lookupByUPC_UpcItemDb(upc){
+    const url = `https://api.upcitemdb.com/prod/trial/lookup?upc=${encodeURIComponent(upc)}`; // free trial (~100 req/day)
+    try{
+      const r = await fetch(url,{headers:{'Accept':'application/json'}});
+      if(!r.ok) return null; const j = await r.json();
+      if(j && j.code==='OK' && Array.isArray(j.items) && j.items.length){
+        const it = j.items[0]||{};
+        const title = (it.title||'').trim();
+        const cat = (it.category||'').toLowerCase();
+        const format = detectFormatFromText(`${title} ${it.description||''} ${cat}`);
+        const image = Array.isArray(it.images)&&it.images[0] ? it.images[0] : '';
+        return {title, description: it.description||'', image, category: it.category||'', format};
+      }
+    }catch(e){ console.warn('UPCitemdb error', e); }
+    return null;
+  }
+  function detectFormatFromText(txt){ txt=(txt||'').toLowerCase(); if(/\b(4k|uhd|ultra\s*hd)\b/.test(txt)) return '4K UHD'; if(/blu[-\s]?ray/.test(txt)) return 'Blu‑ray'; if(/\bdvd\b/.test(txt)) return 'DVD'; if(/vhs/.test(txt)) return 'VHS'; return 'Blu‑ray'; }
+  function cleanTitle(t){ return String(t||'').replace(/\s*\((?:blu[-\s]?ray|dvd|uhd|4k|digital|combo|\w+ edition)\)/ig,'').replace(/\s*\[(?:blu[-\s]?ray|dvd|uhd|4k|digital|combo|\w+ edition)\]/ig,'').replace(/\s+\b(4k|uhd|ultra\s*hd|blu[-\s]?ray|dvd|digital|combo|limited|widescreen|\w+ edition)\b/ig,'').replace(/[:\-]\s*(blu[-\s]?ray|dvd|uhd|4k).*/ig,'').replace(/\s{2,}/g,' ').trim(); }
+  function guessYear(t){ const m = String(t||'').match(/\b(19\d{2}|20\d{2})\b/); return m? Number(m[1]): '' }
+  async function fetchOmdbByTitle(title, year){ const key=els.omdb.value.trim(); if(!key||!title) return null; const url=`https://www.omdbapi.com/?apikey=${encodeURIComponent(key)}&type=movie&t=${encodeURIComponent(title)}${year?`&y=${year}`:''}`; try{ const r=await fetch(url); const j=await r.json(); if(j && j.Response!=='False') return j; }catch(e){ console.warn('OMDb error',e) } return null; }
+
+  async function createMovieFromUPC(code){
+    let movie={ barcode:code, shelf:nextSpine(), title:`Barcode ${code}`, year:'', runtime:'', format:'Blu‑ray', language:'', country:'', mpaa:'', genres:[], cast:[], tags:[], director:'', rating:0, synopsis:'', coverData:'' };
+    const upc=await lookupByUPC_UpcItemDb(code);
+    if(upc && upc.title){ const t=cleanTitle(upc.title); movie.title=t||movie.title; movie.format=upc.format||movie.format; movie.coverData=upc.image||movie.coverData; movie.synopsis=upc.description||movie.synopsis; const y=guessYear(upc.title); if(y) movie.year=y; }
+    const omdb=await fetchOmdbByTitle(movie.title, movie.year);
+    if(omdb){ movie.title=omdb.Title||movie.title; movie.year=parseInt(omdb.Year)||movie.year||''; movie.runtime=parseInt(omdb.Runtime)||movie.runtime||''; movie.language=(omdb.Language||'').split(',')[0]||movie.language; movie.country=(omdb.Country||'').split(',')[0]||movie.country; if(['G','PG','PG-13','R','NC-17'].includes(omdb.Rated)) movie.mpaa=omdb.Rated; movie.genres=(omdb.Genre||'').split(',').map(s=>s.trim()).filter(Boolean); movie.director=omdb.Director||movie.director; movie.cast=(omdb.Actors||'').split(',').map(s=>s.trim()).filter(Boolean); movie.synopsis=omdb.Plot||movie.synopsis; if(omdb.Poster && omdb.Poster!=='N/A') movie.coverData=omdb.Poster; }
+    const id=await DB.add(movie); movie.id=id; MOVIES=await DB.all(); renderList(); openEditor(movie); setTimeout(()=>document.getElementById('title')?.focus(),50);
   }
 
- // === UPC → product → OMDb enrichment ===
-
-// 1) UPC lookup via UPCitemdb (free, no key, ~100 req/day)
-async function lookupByUPC_UpcItemDb(upc){
-  // Docs: https://api.upcitemdb.com/prod/trial/lookup?upc=XXXXXXXXXXXX
-  const url = `https://api.upcitemdb.com/prod/trial/lookup?upc=${encodeURIComponent(upc)}`;
-  try {
-    const r = await fetch(url, { headers: { 'Accept': 'application/json' } });
-    if (!r.ok) return null;
-    const j = await r.json();
-    if (j && j.code === 'OK' && Array.isArray(j.items) && j.items.length){
-      const it = j.items[0] || {};
-      const title = (it.title || '').trim();
-      const cat = (it.category || '').toLowerCase();
-      const format = detectFormatFromText(`${title} ${it.description||''} ${cat}`);
-      const image = Array.isArray(it.images) && it.images[0] ? it.images[0] : '';
-      return { title, description: it.description || '', image, category: it.category || '', format };
-    }
-  } catch (e){ console.warn('UPCitemdb error', e); }
-  return null;
-}
-
-function detectFormatFromText(txt){
-  txt = (txt||'').toLowerCase();
-  if (/\b(4k|uhd|ultra\s*hd)\b/.test(txt)) return '4K UHD';
-  if (/blu[-\s]?ray/.test(txt)) return 'Blu-ray';
-  if (/\bdvd\b/.test(txt)) return 'DVD';
-  if (/vhs/.test(txt)) return 'VHS';
-  return 'Blu-ray';
-}
-function cleanTitle(t){
-  return String(t||'')
-    .replace(/\s*\((?:blu[-\s]?ray|dvd|uhd|4k|digital|combo|\w+ edition)\)/ig,'')
-    .replace(/\s*\[(?:blu[-\s]?ray|dvd|uhd|4k|digital|combo|\w+ edition)\]/ig,'')
-    .replace(/\s+\b(4k|uhd|ultra\s*hd|blu[-\s]?ray|dvd|digital|combo|limited|widescreen|\w+ edition)\b/ig,'')
-    .replace(/[:\-]\s*(blu[-\s]?ray|dvd|uhd|4k).*/ig,'')
-    .replace(/\s{2,}/g,' ')
-    .trim();
-}
-function guessYear(t){
-  const m = String(t||'').match(/\b(19\d{2}|20\d{2})\b/);
-  return m ? Number(m[1]) : '';
-}
-
-// 2) Title → full metadata via OMDb (needs your OMDb API key in the toolbar input)
-async function fetchOmdbByTitle(title, year){
-  const key = document.getElementById('omdb')?.value.trim();
-  if (!key || !title) return null;
-  const url = `https://www.omdbapi.com/?apikey=${encodeURIComponent(key)}&type=movie&t=${encodeURIComponent(title)}${year?`&y=${year}`:''}`;
-  try {
-    const r = await fetch(url);
-    const j = await r.json();
-    if (j && j.Response !== 'False') return j;
-  } catch (e){ console.warn('OMDb error', e); }
-  return null;
-}
-
-// 3) Orchestrate: UPC → (product) → OMDb → save + open editor
-async function createMovieFromUPC(code){
-  let movie = {
-    barcode: code,
-    shelf: nextSpine(),
-    title: `Barcode ${code}`,
-    year: '', runtime: '',
-    format: 'Blu-ray', language: '', country: '', mpaa: '',
-    genres: [], cast: [], tags: [],
-    director: '', rating: 0, synopsis: '', coverData: ''
-  };
-
-  // UPC → product (title/cover/format/desc)
-  const upc = await lookupByUPC_UpcItemDb(code);
-  if (upc && upc.title){
-    const t = cleanTitle(upc.title);
-    movie.title = t || movie.title;
-    movie.format = upc.format || movie.format;
-    movie.coverData = upc.image || movie.coverData;   // use remote URL (fine for <img> / CSS background)
-    movie.synopsis = upc.description || movie.synopsis;
-    const y = guessYear(upc.title); if (y) movie.year = y;
-  }
-
-  // Title → OMDb (if key present) to fully populate all fields
-  const omdb = await fetchOmdbByTitle(movie.title, movie.year);
-  if (omdb){
-    movie.title    = omdb.Title   || movie.title;
-    movie.year     = parseInt(omdb.Year)     || movie.year || '';
-    movie.runtime  = parseInt(omdb.Runtime)  || movie.runtime || '';
-    movie.language = (omdb.Language||'').split(',')[0] || movie.language;
-    movie.country  = (omdb.Country ||'').split(',')[0] || movie.country;
-    if (['G','PG','PG-13','R','NC-17'].includes(omdb.Rated)) movie.mpaa = omdb.Rated;
-    movie.genres   = (omdb.Genre||'').split(',').map(s=>s.trim()).filter(Boolean);
-    movie.director = omdb.Director || movie.director;
-    movie.cast     = (omdb.Actors||'').split(',').map(s=>s.trim()).filter(Boolean);
-    movie.synopsis = omdb.Plot || movie.synopsis;
-    if (omdb.Poster && omdb.Poster!=='N/A') movie.coverData = omdb.Poster;
-  }
-
-  // Save + show editor pre-filled
-  const id = await DB.add(movie); movie.id = id;
-  MOVIES = await DB.all(); renderList();
-  openEditor(movie);
-  setTimeout(()=>document.getElementById('title')?.focus(), 50);
-}
-
+  async function onScanSuccess(decodedText){
+    const code = String(decodedText||'').trim();
+    stopScan(); els.scanner.close();
+    if(!code) return;
+    const found = MOVIES.find(m=>m.barcode===code);
+    if(found){ openDetail(found.id); return; }
+    await createMovieFromUPC(code);
   }
   function onScanError(err){ /* silent */ }
-  $('#btn-scan').onclick = startScan; $('#scan-inside').onclick = startScan;
 
-  // Cover snapshot
-  let stream, videoEl;
-  $('#btn-snap').onclick = async()=>{
+  // Camera Cover Snapshot
+  let stream=null, videoEl=null;
+  document.getElementById('btn-snap').onclick = async()=>{
     try{
       if(!navigator.mediaDevices?.getUserMedia){ alert('Camera not supported in this browser.'); return }
       if(!videoEl){ videoEl = document.createElement('video'); videoEl.autoplay=true; videoEl.playsInline=true; videoEl.style.width='100%'; }
-      const canvas = $('#snap-canvas');
+      const canvas = document.getElementById('snap-canvas');
       stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
       videoEl.srcObject = stream;
       canvas.replaceWith(videoEl); videoEl.classList.remove('hidden');
@@ -666,34 +573,57 @@ async function createMovieFromUPC(code){
   };
 
   async function fetchSynopsis(){
-    const key = $('#omdb').value.trim(); if(!key){ alert('Enter an OMDb API key in the toolbar first.'); return }
-    const t = encodeURIComponent($('#title').value.trim()); if(!t){ alert('Enter a title first.'); return }
-    const y = encodeURIComponent($('#year').value||'');
-    const url = `https://www.omdbapi.com/?apikey=${key}&type=movie&t=${t}${y?`&y=${y}`:''}`;
+    const key = els.omdb.value.trim(); if(!key){ alert('Enter an OMDb API key in the toolbar first.'); return }
+    const t = document.getElementById('title').value.trim(); if(!t){ alert('Enter a title first.'); return }
+    const y = document.getElementById('year').value||'';
+    const url = `https://www.omdbapi.com/?apikey=${encodeURIComponent(key)}&type=movie&t=${encodeURIComponent(t)}${y?`&y=${encodeURIComponent(y)}`:''}`;
     try{
       const r = await fetch(url); const j = await r.json();
       if(j && j.Response!=='False'){
-        $('#synopsis').value = j.Plot || $('#synopsis').value || '';
-        if(!$('#year').value && j.Year) $('#year').value = parseInt(j.Year)||'';
-        if(!$('#runtime').value && j.Runtime) $('#runtime').value = parseInt(j.Runtime)||'';
+        document.getElementById('synopsis').value = j.Plot || document.getElementById('synopsis').value || '';
+        if(!document.getElementById('year').value && j.Year) document.getElementById('year').value = parseInt(j.Year)||'';
+        if(!document.getElementById('runtime').value && j.Runtime) document.getElementById('runtime').value = parseInt(j.Runtime)||'';
         if((j.Genre||'').length){ const G=j.Genre.split(',').map(x=>x.trim()); $$('#genre-box input').forEach(cb=>cb.checked = G.includes(cb.value)); }
-        if(!$('#language').value && j.Language) $('#language').value = j.Language.split(',')[0].trim();
-        if(!$('#country').value && j.Country) $('#country').value = j.Country.split(',')[0].trim();
-        if(!$('#mpaa').value && j.Rated && ['G','PG','PG-13','R','NC-17'].includes(j.Rated)) $('#mpaa').value = j.Rated;
+        if(!document.getElementById('language').value && j.Language) document.getElementById('language').value = j.Language.split(',')[0].trim();
+        if(!document.getElementById('country').value && j.Country) document.getElementById('country').value = j.Country.split(',')[0].trim();
+        if(!document.getElementById('mpaa').value && j.Rated && ['G','PG','PG-13','R','NC-17'].includes(j.Rated)) document.getElementById('mpaa').value = j.Rated;
       } else { alert('Not found on OMDb. Try adjusting title/year.'); }
     }catch(err){ alert('OMDb error: '+err.message) }
   }
-  $('#btn-fetch').onclick = fetchSynopsis;
 
+  // Init
   (async function init(){
     renderGenreChoices();
     await openDB();
     MOVIES = await DB.all();
     renderList();
-    $('#btn-add').onclick = ()=>openEditor();
-    $('#save').onclick = (e)=>{ e.preventDefault(); saveEditor(); };
-    $('#btn-edit').onclick = ()=>{ detail.close(); openEditor(CURRENT) };
-    $('#btn-delete').onclick = deleteCurrent;
+
+    // Top bar buttons
+    document.getElementById('btn-add').onclick = ()=>openEditor();
+    document.getElementById('btn-scan').onclick = startScan;
+
+    bindFilters();
+    bindDataButtons();
+
+    // Editor buttons
+    document.getElementById('save').onclick = async (e)=>{ e.preventDefault(); e.stopPropagation(); await saveEditor(); };
+    document.getElementById('btn-cancel').onclick = ()=>els.editor.close();
+    document.getElementById('btn-close-editor').onclick = ()=>els.editor.close();
+
+    // Detail buttons
+    document.getElementById('btn-edit').onclick = ()=>{ els.detail.close(); openEditor(CURRENT); };
+    document.getElementById('btn-delete').onclick = deleteCurrent;
+    document.getElementById('btn-close-detail').onclick = ()=>els.detail.close();
+    document.getElementById('btn-close-detail-2').onclick = ()=>els.detail.close();
+
+    // Scanner close
+    document.getElementById('btn-close-scanner').onclick = ()=>{ stopScan(); els.scanner.close(); };
+
+    // Inside editor scan trigger
+    document.getElementById('scan-inside').onclick = startScan;
+
+    // Fetch synopsis button
+    document.getElementById('btn-fetch').onclick = fetchSynopsis;
   })();
   </script>
 </body>
