@@ -3,42 +3,35 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Home Movie Library — Scan → Auto‑Add</title>
+  <title>Home Movie Library — TMDb Build</title>
   <!--
-    Notes for deployment:
-    • Use HTTPS (e.g., GitHub Pages) so the camera works for barcode scanning.
-    • This app stores your OMDb API key in localStorage so it's UNIVERSAL on this device.
+    • Camera access requires HTTPS (use GitHub Pages).
+    • TMDb key is hard-coded by request. Anyone can view it in DevTools on a public site.
+    • UPC → title via UPCitemdb (trial). Title/year → details via TMDb.
+    • 9 categories: Genre, Sub‑genre, Year/Decade, Director, Cast, Format, Language, Country/Region, MPAA.
   -->
   <style>
-    :root{
-      --bg:#0f1115;--panel:#151823;--muted:#99a3b3;--text:#e8ecf3;--brand:#6ee7b7;--accent:#60a5fa;--danger:#ef4444;--warn:#f59e0b;--ok:#22c55e;
-      --card:#1a1f2e;--chip:#22283a;--input:#111423;--border:#2a3146;
-    }
+    :root{--bg:#0f1115;--panel:#151823;--muted:#99a3b3;--text:#e8ecf3;--brand:#6ee7b7;--accent:#60a5fa;--danger:#ef4444;--card:#1a1f2e;--chip:#22283a;--input:#111423;--border:#2a3146}
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{margin:0;background:linear-gradient(180deg,#0b0e13,#0f1117 20%,#0f1115);color:var(--text);font:14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji"}
+    body{margin:0;background:linear-gradient(180deg,#0b0e13,#0f1117 20%,#0f1115);color:var(--text);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Inter,"Helvetica Neue",Arial}
     .app{max-width:1200px;margin:0 auto;padding:20px}
     header{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:16px}
     .title{display:flex;align-items:center;gap:12px}
     .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--brand),#4ade80);display:grid;place-items:center;color:#0b1410;font-weight:800}
     h1{font-size:20px;margin:0}
-
     .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
     .search{position:relative;flex:1;min-width:240px}
     .search input{width:100%;padding:10px 12px 10px 38px;border-radius:10px;border:1px solid var(--border);background:var(--input);color:var(--text)}
     .search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:.7}
-
     .btn{appearance:none;border:1px solid var(--border);background:var(--panel);color:var(--text);padding:9px 12px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
     .btn:hover{filter:brightness(1.05)}
     .btn.primary{background:linear-gradient(135deg,#2563eb,#22c55e);border:0}
     .btn.ghost{background:#121522}
     .btn.danger{background:#2b1420;border-color:#7a253f;color:#f9c}
-
     .filters{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
     .chip{background:var(--chip);border:1px solid var(--border);border-radius:999px;padding:6px 10px;display:inline-flex;gap:8px;align-items:center}
-    .chip input, .chip select{background:transparent;border:0;color:var(--text)}
-    .chip input[type="number"]{width:84px}
-
+    .chip input,.chip select{background:transparent;border:0;color:var(--text)}
     .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
     .card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
     .cover{width:100%;height:280px;background:#0c0f18 center/cover no-repeat;display:grid;place-items:center;color:#8891a7}
@@ -49,33 +42,27 @@
     .titleRow{display:flex;gap:8px;align-items:center}
     .titleRow h3{margin:0;font-size:15px;line-height:1.2}
     .shelf{background:#132918;border:1px solid #205c33;color:#b7f6c7;padding:2px 8px;border-radius:999px;font-weight:700}
-
     .stars{display:inline-flex;gap:2px}
     .empty{opacity:.7;padding:30px;text-align:center;border:1px dashed var(--border);border-radius:16px}
-
     dialog{border:1px solid var(--border);background:var(--panel);color:var(--text);border-radius:16px;max-width:860px;width:calc(100% - 24px);padding:0}
     dialog::backdrop{background:rgba(0,0,0,.55)}
     .modal-head{display:flex;justify-content:space-between;align-items:center;padding:14px;border-bottom:1px solid var(--border)}
     .modal-body{padding:14px}
     .modal-foot{display:flex;justify-content:flex-end;gap:10px;padding:14px;border-top:1px solid var(--border)}
-
     form.movie{display:grid;grid-template-columns:1fr 1fr;gap:12px}
     form.movie .full{grid-column:1 / -1}
     .field{display:flex;flex-direction:column;gap:6px}
     label{font-size:12px;color:var(--muted)}
-    input[type="text"], input[type="number"], input[type="file"], textarea, select{padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--input);color:var(--text)}
+    input[type="text"],input[type="number"],input[type="file"],textarea,select{padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--input);color:var(--text)}
     textarea{min-height:90px;resize:vertical}
     .genres{display:flex;flex-wrap:wrap;gap:6px}
     .genres label{display:inline-flex;gap:6px;align-items:center;background:#111524;border:1px solid var(--border);padding:6px 10px;border-radius:999px}
-
     .help{background:#0f1424;border:1px solid var(--border);border-radius:12px;padding:10px;margin:8px 0;color:#c6d0e0}
     summary{cursor:pointer}
-
     .pill{background:#14192b;border:1px solid var(--border);padding:6px 10px;border-radius:999px}
     .soft{opacity:.7}
     .hidden{display:none}
-    .flex{display:flex}
-    .gap-8{gap:8px}
+    footer{margin-top:18px;opacity:.7;font-size:12px}
   </style>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
@@ -86,7 +73,7 @@
         <div class="logo">🎞️</div>
         <div>
           <h1>Home Movie Library</h1>
-          <div class="soft">Scan → Auto‑add → Auto‑fill from the web</div>
+          <div class="soft">Scan → Auto‑add → Auto‑fill from the web (TMDb)</div>
         </div>
       </div>
       <div class="toolbar" style="width:100%">
@@ -107,7 +94,6 @@
       <ul>
         <li><b>9 categories</b>: Genre, Sub‑genre, Year/Decade, Director, Cast, Format, Language, Country/Region, MPAA.</li>
         <li>Extras: <b>Spine #</b> (auto), <b>Location</b>, <b>Barcode</b>, <b>Cover</b>, <b>Synopsis</b>, <b>Your rating</b>.</li>
-        <li>Put your <b>OMDb API key</b> in the toolbar field below. It will be stored on this device for all users of this browser.</li>
       </ul>
     </details>
 
@@ -141,12 +127,12 @@
       <span class="chip">MPAA <select id="f-mpaa"><option value="">Any</option><option>G</option><option>PG</option><option>PG-13</option><option>R</option><option>NC-17</option></select></span>
       <span class="chip">Location <input id="f-loc" type="text" placeholder="Room / shelf…"></span>
       <span class="chip">My rating ≥ <input id="f-rate-min" type="number" min="0" max="5" step="0.5" value="0"></span>
-      <span class="chip">OMDb key <input id="omdb" type="password" placeholder="(device‑wide)"/></span>
-      <button id="btn-reset" class="btn ghost">Reset</button>
     </div>
 
     <div id="list" class="grid"></div>
-    <div id="empty" class="empty hidden">No movies yet. Click <b>Add movie</b> to start your catalog.</div>
+    <div id="empty" class="empty hidden">No movies yet. Click <b>Add movie</b> or <b>Scan barcode</b> to start.</div>
+
+    <footer>This product uses the TMDB API but is not endorsed or certified by TMDB.</footer>
   </div>
 
   <!-- Add/Edit Modal -->
@@ -182,7 +168,7 @@
         <div class="field"><label>Location</label><input id="location" placeholder="Room • Shelf • Row"></div>
 
         <div class="field"><label>Barcode (UPC/EAN)</label>
-          <div class="flex gap-8"><input id="barcode" placeholder="Scan or type"> <button type="button" id="scan-inside" class="btn">Scan</button></div>
+          <div style="display:flex;gap:8px"><input id="barcode" placeholder="Scan or type"> <button type="button" id="scan-inside" class="btn">Scan</button></div>
         </div>
         <div class="field"><label>My rating</label>
           <div id="rate-edit" class="stars" role="radiogroup" aria-label="Your rating"></div>
@@ -190,14 +176,11 @@
 
         <div class="field full"><label>Synopsis</label>
           <textarea id="synopsis" placeholder="Short plot summary"></textarea>
-          <div class="flex gap-8" style="margin-top:6px">
-            <button type="button" id="btn-fetch" class="btn">🌐 Fetch synopsis via OMDb</button>
-            <span class="soft">Uses device‑wide OMDb key.</span>
-          </div>
+          <div class="soft" style="margin-top:6px">Synopsis is auto‑filled from TMDb during scan; you can also type here.</div>
         </div>
 
         <div class="field full"><label>Cover image</label>
-          <div class="flex gap-8"><input id="cover" type="file" accept="image/*" capture="environment"><button type="button" id="btn-snap" class="btn">📸 Use camera</button></div>
+          <div style="display:flex;gap:8px"><input id="cover" type="file" accept="image/*" capture="environment"><button type="button" id="btn-snap" class="btn">📸 Use camera</button></div>
           <canvas id="snap-canvas" class="hidden" width="320" height="480"></canvas>
         </div>
 
@@ -221,7 +204,7 @@
       <button class="btn" type="button" id="btn-close-detail">✖</button>
     </div>
     <div class="modal-body">
-      <div class="flex gap-8">
+      <div style="display:flex;gap:8px">
         <img id="d-cover" alt="cover" style="width:220px;height:320px;object-fit:cover;border-radius:12px;border:1px solid var(--border)">
         <div style="flex:1;display:flex;flex-direction:column;gap:10px">
           <div class="badge">Format: <b id="d-format"></b></div>
@@ -233,7 +216,7 @@
           <div>Sub‑genres: <span id="d-tags" class="soft"></span></div>
           <div>Barcode: <span id="d-bar" class="pill"></span></div>
           <div>Location: <b id="d-loc"></b></div>
-          <div class="flex">My rating: <span id="d-rating" class="stars" style="margin-left:6px"></span></div>
+          <div style="display:flex">My rating: <span id="d-rating" class="stars" style="margin-left:6px"></span></div>
         </div>
       </div>
       <div style="margin-top:12px">
@@ -262,10 +245,9 @@
 
   <script>
   'use strict';
-  // ===== Device‑wide OMDb Key (persists per browser/profile via localStorage) =====
-  const OMDB_KEY_STORAGE = 'omdbKey';
-  const getOmdbKey = () => localStorage.getItem(OMDB_KEY_STORAGE) || '';
-  const setOmdbKey = v => localStorage.setItem(OMDB_KEY_STORAGE, String(v||'').trim());
+  // ===== Hardcoded TMDb API key & constants =====
+  const TMDB_KEY = '64b36c4d3c82e2dbc2264393af1ee56c';
+  const TMDB_IMG = 'https://image.tmdb.org/t/p/w500';
 
   // ===== DOM helpers =====
   const $ = s => document.querySelector(s);
@@ -275,7 +257,6 @@
     empty: document.getElementById('empty'),
     q: document.getElementById('q'),
     sort: document.getElementById('sort'),
-    omdb: document.getElementById('omdb'),
     editor: document.getElementById('editor'),
     detail: document.getElementById('detail'),
     scanner: document.getElementById('scanner'),
@@ -285,7 +266,7 @@
   const GENRES = ['Action','Adventure','Animation','Biography','Comedy','Crime','Documentary','Drama','Family','Fantasy','Film-Noir','History','Horror','Music','Musical','Mystery','Romance','Sci-Fi','Sport','Thriller','War','Western'];
 
   // ===== IndexedDB =====
-  const DB_NAME = 'movieLibrary.v5';
+  const DB_NAME = 'movieLibrary.tmdb.v1';
   const STORE = 'movies';
   let db;
   function openDB(){
@@ -329,7 +310,6 @@
       .replace(/\s{2,}/g,' ')
       .trim();
   }
-
   function renderGenreChoices(){ const box = document.getElementById('genre-box'); box.innerHTML = GENRES.map(g=>`<label><input type="checkbox" value="${g}"> ${g}</label>`).join(''); const fg = document.getElementById('f-genre'); GENRES.forEach(g=>{const o=document.createElement('option');o.textContent=g; fg.appendChild(o)}); }
 
   function movieCard(m){
@@ -492,10 +472,10 @@
       const el = document.getElementById(id); if(!el) return;
       el.addEventListener('input', renderList); el.addEventListener('change', renderList);
     });
-    document.getElementById('btn-reset').onclick = ()=>{
+    document.getElementById('btn-reset')?.addEventListener('click', ()=>{
       ['q','f-genre','f-sub','f-format','f-year-min','f-decade','f-lang','f-country','f-mpaa','f-loc'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
-      document.getElementById('f-rate-min').value='0'; renderList();
-    };
+      const rmin=document.getElementById('f-rate-min'); if(rmin) rmin.value='0'; renderList();
+    });
   }
 
   // ===== Export / Import / Clear =====
@@ -529,9 +509,9 @@
   }
   function stopScan(){ if(html5Qrcode && scanning){ html5Qrcode.stop().then(()=>{html5Qrcode.clear(); scanning=false}).catch(()=>{}) } }
 
-  // ===== UPC → product → OMDb enrichment =====
-  async function lookupByUPC_UpcItemDb(upc){
-    const url = `https://api.upcitemdb.com/prod/trial/lookup?upc=${encodeURIComponent(upc)}`; // free trial (~100 req/day)
+  // ===== UPC → product → TMDb enrichment =====
+  async function lookupByUPC(upc){
+    const url = `https://api.upcitemdb.com/prod/trial/lookup?upc=${encodeURIComponent(upc)}`;
     try{
       const r = await fetch(url,{headers:{'Accept':'application/json'}});
       if(!r.ok) return null; const j = await r.json();
@@ -543,36 +523,62 @@
         const image = Array.isArray(it.images)&&it.images[0] ? it.images[0] : '';
         return {title, description: it.description||'', image, category: it.category||'', format};
       }
-    }catch(e){ console.warn('UPCitemdb error', e); }
+    }catch(e){ console.warn('UPC lookup error',e); }
     return null;
   }
   function detectFormatFromText(txt){ txt=(txt||'').toLowerCase(); if(/\b(4k|uhd|ultra\s*hd)\b/.test(txt)) return '4K UHD'; if(/blu[-\s]?ray/.test(txt)) return 'Blu‑ray'; if(/\bdvd\b/.test(txt)) return 'DVD'; if(/vhs/.test(txt)) return 'VHS'; return 'Blu‑ray'; }
   function guessYearFromText(t){ const m = String(t||'').match(/\b(19\d{2}|20\d{2})\b/); return m? Number(m[1]): '' }
 
-  async function fetchOmdbByTitle(title, year){
-    const key = getOmdbKey();
-    if(!key || !title) return null;
-    const url = `https://www.omdbapi.com/?apikey=${encodeURIComponent(key)}&type=movie&t=${encodeURIComponent(title)}${year?`&y=${encodeURIComponent(year)}`:''}`;
-    try{ const r=await fetch(url); const j=await r.json(); if(j && j.Response!=='False') return j; }catch(e){ console.warn('OMDb error',e) } return null; }
+  async function tmdbSearch(title, year){
+    if(!title) return null;
+    const url = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(title)}${year?`&year=${encodeURIComponent(year)}`:''}`;
+    try{ const r=await fetch(url); const j=await r.json(); if(!j || !Array.isArray(j.results) || j.results.length===0) return null; return j.results[0]; }catch(e){ console.warn('TMDb search error',e); return null }
+  }
+
+  async function tmdbEnrich(movie, id){
+    const url = `https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&append_to_response=credits,release_dates`;
+    try{
+      const r = await fetch(url); const d = await r.json(); if(!d || d.success===false) return movie;
+      movie.title = d.title || movie.title;
+      movie.year = (d.release_date||'').slice(0,4) || movie.year;
+      movie.runtime = Number(d.runtime)||movie.runtime||'';
+      // Language
+      movie.language = (Array.isArray(d.spoken_languages) && d.spoken_languages[0]?.english_name) || d.original_language || movie.language;
+      // Country
+      movie.country = (Array.isArray(d.production_countries) && d.production_countries[0]?.name) || movie.country;
+      // Genres
+      movie.genres = Array.isArray(d.genres) ? d.genres.map(g=>g.name) : movie.genres;
+      // Director
+      if(d.credits && Array.isArray(d.credits.crew)){
+        const dir = d.credits.crew.find(c=>c.job==='Director');
+        if(dir) movie.director = dir.name;
+      }
+      // Cast (top 5)
+      if(d.credits && Array.isArray(d.credits.cast)){
+        movie.cast = d.credits.cast.slice(0,5).map(c=>c.name);
+      }
+      // MPAA (US certification)
+      if(d.release_dates && Array.isArray(d.release_dates.results)){
+        const us = d.release_dates.results.find(x=>x.iso_3166_1==='US');
+        if(us && Array.isArray(us.release_dates)){
+          const cert = us.release_dates.find(x=>x.certification)||us.release_dates[0];
+          movie.mpaa = (cert && cert.certification) || movie.mpaa;
+        }
+      }
+      // Overview
+      movie.synopsis = d.overview || movie.synopsis;
+      // Poster
+      if(d.poster_path){ movie.coverData = `${TMDB_IMG}${d.poster_path}`; }
+      return movie;
+    }catch(e){ console.warn('TMDb detail error',e); return movie }
+  }
 
   async function createMovieFromUPC(code){
     let movie={ barcode:code, shelf:nextSpine(), title:`Barcode ${code}`, year:'', runtime:'', format:'Blu‑ray', language:'', country:'', mpaa:'', genres:[], cast:[], tags:[], director:'', rating:0, synopsis:'', coverData:'' };
-    const upc=await lookupByUPC_UpcItemDb(code);
+    const upc=await lookupByUPC(code);
     if(upc && upc.title){ movie.title=upc.title||movie.title; movie.format=upc.format||movie.format; movie.coverData=upc.image||movie.coverData; movie.synopsis=upc.description||movie.synopsis; const y=guessYearFromText(upc.title); if(y) movie.year=y; }
-    const omdb=await fetchOmdbByTitle(movie.title, movie.year);
-    if(omdb){
-      movie.title=omdb.Title||movie.title;
-      movie.year=parseInt(omdb.Year)||movie.year||'';
-      movie.runtime=parseInt(String(omdb.Runtime||'').replace(/[^0-9]/g,''))||movie.runtime||'';
-      movie.language=(omdb.Language||'').split(',')[0].trim()||movie.language;
-      movie.country=(omdb.Country||'').split(',')[0].trim()||movie.country;
-      if(['G','PG','PG-13','R','NC-17'].includes(omdb.Rated)) movie.mpaa=omdb.Rated;
-      movie.genres=(omdb.Genre||'').split(',').map(s=>s.trim()).filter(Boolean);
-      movie.director=omdb.Director||movie.director;
-      movie.cast=(omdb.Actors||'').split(',').map(s=>s.trim()).filter(Boolean);
-      movie.synopsis=omdb.Plot||movie.synopsis;
-      if(omdb.Poster && omdb.Poster!=='N/A') movie.coverData=omdb.Poster;
-    }
+    const found = await tmdbSearch(movie.title, movie.year);
+    if(found){ movie = await tmdbEnrich(movie, found.id); }
     const id=await DB.add(movie); movie.id=id; MOVIES=await DB.all(); renderList(); if(els.editor.open) els.editor.close(); openDetail(movie.id);
   }
 
@@ -609,31 +615,8 @@
     }catch(err){ alert('Camera error: '+err.message) }
   };
 
-  async function fetchSynopsis(){
-    const key = getOmdbKey(); if(!key){ alert('Enter an OMDb API key in the toolbar first.'); return }
-    const t = document.getElementById('title').value.trim(); if(!t){ alert('Enter a title first.'); return }
-    const y = document.getElementById('year').value||'';
-    const url = `https://www.omdbapi.com/?apikey=${encodeURIComponent(key)}&type=movie&t=${encodeURIComponent(t)}${y?`&y=${encodeURIComponent(y)}`:''}`;
-    try{
-      const r = await fetch(url); const j = await r.json();
-      if(j && j.Response!=='False'){
-        document.getElementById('synopsis').value = j.Plot || document.getElementById('synopsis').value || '';
-        if(!document.getElementById('year').value && j.Year) document.getElementById('year').value = parseInt(j.Year)||'';
-        if(!document.getElementById('runtime').value && j.Runtime) document.getElementById('runtime').value = parseInt(String(j.Runtime).replace(/[^0-9]/g,''))||'';
-        if((j.Genre||'').length){ const G=j.Genre.split(',').map(x=>x.trim()); $$('#genre-box input').forEach(cb=>cb.checked = G.includes(cb.value)); }
-        if(!document.getElementById('language').value && j.Language) document.getElementById('language').value = j.Language.split(',')[0].trim();
-        if(!document.getElementById('country').value && j.Country) document.getElementById('country').value = j.Country.split(',')[0].trim();
-        if(!document.getElementById('mpaa').value && j.Rated && ['G','PG','PG-13','R','NC-17'].includes(j.Rated)) document.getElementById('mpaa').value = j.Rated;
-      } else { alert('Not found on OMDb. Try adjusting title/year.'); }
-    }catch(err){ alert('OMDb error: '+err.message) }
-  }
-
   // ===== Init =====
   (async function init(){
-    // Seed + persist OMDb key for the device
-    els.omdb.value = getOmdbKey();
-    els.omdb.addEventListener('input', e => setOmdbKey(e.target.value));
-
     renderGenreChoices();
     await openDB();
     MOVIES = await DB.all();
@@ -662,9 +645,6 @@
 
     // Inside editor scan trigger
     document.getElementById('scan-inside').onclick = startScan;
-
-    // Fetch synopsis button (uses device‑wide key)
-    document.getElementById('btn-fetch').onclick = fetchSynopsis;
   })();
   </script>
 </body>
